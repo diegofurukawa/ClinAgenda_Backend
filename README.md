@@ -1,100 +1,45 @@
-# Projeto ClinAgenda - Sistema de Agendamento para Clínicas
-
-## Visão Geral
+# ClinAgenda - Sistema de Agendamento para Clínicas
 
 ClinAgenda é um sistema de agendamento para clínicas médicas desenvolvido com ASP.NET Core no backend e Vue.js no frontend. O projeto segue a arquitetura Clean Architecture e utiliza MySQL como banco de dados.
 
-## Atores do Sistema
+## 🔍 Visão Geral
 
-- Secretário: Responsável pelo gerenciamento de agendamentos
-- Paciente: Usuário final que agenda consultas
-- Doutora/Médico: Profissional que atende os pacientes
+O sistema permite o gerenciamento completo de agendamentos médicos, incluindo:
+- Cadastro de médicos e suas especialidades
+- Cadastro de pacientes
+- Agendamento de consultas
+- Gestão de disponibilidade
 
-## Tecnologias Utilizadas
+## 👥 Atores do Sistema
+
+- **Secretário**: Responsável pelo gerenciamento de agendamentos
+- **Paciente**: Usuário final que agenda consultas
+- **Médico**: Profissional que atende os pacientes
+
+## 🛠️ Tecnologias Utilizadas
 
 ### Backend
-
 - ASP.NET Core 8.0
 - C# como linguagem de programação
 - MySQL 8.0.41 como banco de dados
 
 ### Frontend
-
 - Vue.js
 - Node.js
 - Yarn como gerenciador de pacotes
 
-## Estrutura do Banco de Dados
+## 📊 Estrutura do Banco de Dados
 
-### Tabelas Principais
+O sistema utiliza um banco de dados MySQL com as seguintes tabelas principais:
 
-#### Status
+- **Status**: Armazena estados para médicos e pacientes
+- **Specialty**: Armazena as especialidades médicas disponíveis
+- **Doctor**: Armazena os dados dos médicos
+- **Patient**: Armazena os dados dos pacientes
+- **Doctor_Specialty**: Relaciona médicos com suas especialidades
+- **Appointment**: Armazena os agendamentos de consultas
 
-Armazena os diferentes status para médicos e pacientes.
-
-| Coluna | Tipo         | Descrição                |
-| ------ | ------------ | ------------------------ |
-| id     | int          | Identificador único (PK) |
-| name   | varchar(255) | Nome do status           |
-
-#### Specialty (Especialidade)
-
-Armazena as especialidades médicas disponíveis.
-
-| Coluna           | Tipo         | Descrição                          |
-| ---------------- | ------------ | ---------------------------------- |
-| id               | int          | Identificador único (PK)           |
-| name             | varchar(255) | Nome da especialidade              |
-| scheduleDuration | int          | Duração em minutos de uma consulta |
-
-#### Doctor (Médico)
-
-Armazena os dados dos médicos.
-
-| Coluna   | Tipo         | Descrição                |
-| -------- | ------------ | ------------------------ |
-| id       | int          | Identificador único (PK) |
-| name     | varchar(255) | Nome do médico           |
-| statusId | int          | Status do médico (FK)    |
-
-#### Patient (Paciente)
-
-Armazena os dados dos pacientes.
-
-| Coluna         | Tipo         | Descrição                |
-| -------------- | ------------ | ------------------------ |
-| id             | int          | Identificador único (PK) |
-| name           | varchar(255) | Nome do paciente         |
-| phoneNumber    | varchar(20)  | Telefone de contato      |
-| documentNumber | varchar(50)  | Número do documento      |
-| statusId       | int          | Status do paciente (FK)  |
-| birthDate      | date         | Data de nascimento       |
-
-### Tabelas de Relacionamento
-
-#### Doctor_Specialty
-
-Relaciona médicos com suas especialidades (N:N).
-
-| Coluna      | Tipo | Descrição                    |
-| ----------- | ---- | ---------------------------- |
-| doctorId    | int  | ID do médico (PK, FK)        |
-| specialtyId | int  | ID da especialidade (PK, FK) |
-
-#### Appointment (Agendamento)
-
-Armazena os agendamentos de consultas.
-
-| Coluna          | Tipo     | Descrição                    |
-| --------------- | -------- | ---------------------------- |
-| id              | int      | Identificador único (PK)     |
-| patientId       | int      | ID do paciente (FK)          |
-| doctorId        | int      | ID do médico (FK)            |
-| specialtyId     | int      | ID da especialidade (FK)     |
-| appointmentDate | datetime | Data e hora da consulta      |
-| observation     | text     | Observações sobre a consulta |
-
-## Arquitetura do Projeto (Clean Architecture)
+## 🏗️ Arquitetura do Projeto (Clean Architecture)
 
 O projeto segue a arquitetura limpa com as seguintes camadas:
 
@@ -121,7 +66,7 @@ ClinAgendaAPI/
 │       └── appsettings.json                # Configurações da Aplicação
 ```
 
-## Configuração do Ambiente de Desenvolvimento
+## 💻 Configuração do Ambiente de Desenvolvimento
 
 ### Requisitos para Windows
 
@@ -161,35 +106,80 @@ sudo apt-get update && sudo apt-get install -y aspnetcore-runtime-8.0
 #### Instalação do MySQL no Linux
 
 1. Atualizar repositórios: `sudo apt update && sudo apt upgrade`
-
 2. Instalar wget: `sudo apt install wget`
-
 3. Baixar e adicionar repositório MySQL:
-
    ```bash
-   wget https://dev.mysql.com/get/mysql-apt-config_0.8.33-1_all.debsudo apt install ./mysql-apt-config_0.8.33-1_all.deb
+   wget https://dev.mysql.com/get/mysql-apt-config_0.8.33-1_all.deb
+   sudo apt install ./mysql-apt-config_0.8.33-1_all.deb
    ```
-
 4. Instalar MySQL Server:
-
    ```bash
-   sudo apt updatesudo apt install mysql-server
+   sudo apt update
+   sudo apt install mysql-server
    ```
 
-## Inicialização do Projeto
+### Cliente de Banco de Dados (Opcional)
 
-Para criar um projeto ASP.NET Core WebAPI:
+Você pode escolher entre:
+- MySQL Workbench: https://dev.mysql.com/downloads/workbench/
+- dBeaver: https://dbeaver.io/download/
+- Beekeeper Studio: https://www.beekeeperstudio.io/get
 
-```bash
-dotnet new webapi --name ClinAgenda
-```
+## 🚀 Inicializando o Projeto
 
-## Diferenças entre C#, .NET, ASP.NET e ASP.NET Core
+### Configuração do Banco de Dados
 
-| Termo        | O que é?                                                     | Relacionamento                                           |
-| ------------ | ------------------------------------------------------------ | -------------------------------------------------------- |
-| .NET         | Plataforma de desenvolvimento (ecossistema)                  | Base para tudo                                           |
-| C#           | Linguagem de programação                                     | Usada para escrever código no .NET                       |
-| ASP.NET      | Framework para criar aplicações web (versão mais antiga)     | Parte do .NET, focado em web                             |
-| ASP.NET Core | Framework moderno e multiplataforma para criar aplicações web e APIs | Parte do .NET 5+, sucessor do ASP.NET                    |
-| ASP.NET MVC  | Padrão de arquitetura para organizar aplicações web (Model-View-Controller) | Pode ser usado no ASP.NET tradicional ou no ASP.NET Core |
+1. Execute o script SQL fornecido para criação do banco de dados:
+   ```bash
+   mysql -u root -p < script_criacao_banco.sql
+   ```
+
+2. Verifique se o banco `clinagenda_database` foi criado corretamente.
+
+### Backend
+
+1. Clone o repositório:
+   ```bash
+   git clone [URL-DO-REPOSITÓRIO]
+   cd ClinAgenda
+   ```
+
+2. Restaure as dependências e execute o projeto:
+   ```bash
+   dotnet restore
+   cd src/ClinAgendaAPI.WebAPI
+   dotnet run
+   ```
+
+3. A API estará disponível em: `https://localhost:5001`
+
+### Frontend
+
+1. Navegue até o diretório do frontend:
+   ```bash
+   cd frontend
+   ```
+
+2. Instale as dependências:
+   ```bash
+   yarn install
+   ```
+
+3. Execute o projeto:
+   ```bash
+   yarn serve
+   ```
+
+4. O frontend estará disponível em: `http://localhost:8080`
+
+## 📝 Licença
+
+Este projeto está licenciado sob a [Licença MIT](LICENSE).
+
+## 👥 Contribuição
+
+Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e pull requests.
+
+## 📧 Contato
+
+Para dúvidas ou sugestões, entre em contato com a equipe de desenvolvimento.
