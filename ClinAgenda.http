@@ -1,0 +1,6 @@
+@ClinAgenda_HostAddress = http://localhost:5179
+
+GET {{ClinAgenda_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
