@@ -1,0 +1,12 @@
+# Pastas
+backup/*
+bin/*
+obj/*
+
+*backup/
+*bin/
+*obj/
+
+backup/
+bin/
+obj/
