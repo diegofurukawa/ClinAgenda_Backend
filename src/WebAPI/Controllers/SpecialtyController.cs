@@ -33,15 +33,15 @@ namespace ClinAgenda.src.WebAPI.Controllers
         }
 
         [HttpGet("listById/{id}")]
-        public async Task<IActionResult> GetSpecialtyByIdAsync(int id)
+        public async Task<IActionResult> GetSpecialtyByIdAsync(int specialtyid)
         {
             try
             {
-                var specialty = await _SpecialtyUseCase.GetSpecialtyByIdAsync(id);
+                var specialty = await _SpecialtyUseCase.GetSpecialtyByIdAsync(specialtyid);
 
                 if (specialty == null)
                 {
-                    return NotFound($"Specialty com ID {id} não encontrado.");
+                    return NotFound($"Specialty com ID {specialtyid} não encontrado.");
                 }
 
                 return Ok(specialty);
@@ -57,7 +57,7 @@ namespace ClinAgenda.src.WebAPI.Controllers
         {
             try
             {
-                if (Specialty == null || string.IsNullOrWhiteSpace(Specialty.Name))
+                if (Specialty == null || string.IsNullOrWhiteSpace(Specialty.SpecialtyName))
                 {
                     return BadRequest("Os dados do Specialty são inválidos.");
                 }

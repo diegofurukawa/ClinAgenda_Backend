@@ -21,34 +21,40 @@ namespace ClinAgenda.src.Application.DoctorUseCase
             _specialtyRepository = specialtyRepository;
         }
 
-        public async Task<object> GetDoctorsAsync(string? name, int? specialtyId, int? statusId, int itemsPerPage, int page)
+        public async Task<object> GetDoctorsAsync(
+            string? doctorname, 
+            int? specialtyId, 
+            int? statusId, 
+            int itemsPerPage, 
+            int page
+            )
         {
             int offset = (page - 1) * itemsPerPage;
 
-            var doctors = (await _doctorRepository.GetDoctorsAsync(name, specialtyId, statusId, offset, itemsPerPage)).ToList();
+            var doctors = (await _doctorRepository.GetDoctorsAsync(doctorname, specialtyId, statusId, offset, itemsPerPage)).ToList();
 
             if (!doctors.Any())
                 return new { total = 0, items = new List<DoctorListReturnDTO>() };
 
-            var doctorIds = doctors.Select(d => d.Id).ToArray();
+            var doctorIds = doctors.Select(d => d.DoctorId).ToArray();
             var specialties = (await _doctorRepository.GetDoctorSpecialtyAsync(doctorIds)).ToList();
 
             var result = doctors.Select(d => new DoctorListReturnDTO
             {
-                Id = d.Id,
-                Name = d.Name,
+                DoctorId = d.DoctorId,
+                DoctorName = d.DoctorName,
                 Status = new StatusDTO
                 {
-                    Id = d.StatusId,
-                    Name = d.StatusName
+                    StatusId = d.StatusId,
+                    StatusName = d.StatusName
                 },
                 Specialty = specialties
-            .Where(s => s.DoctorId == d.Id)
+            .Where(s => s.DoctorId == d.DoctorId)
             .Select(s => new SpecialtyDTO
             {
-                Id = s.SpecialtyId,
-                Name = s.SpecialtyName,
-                ScheduleDuration = s.ScheduleDuration
+                SpecialtyId = s.SpecialtyId,
+                SpecialtyName = s.SpecialtyName,
+                nScheduleDuration = s.nScheduleDuration
             })
             .ToList()
             });
@@ -82,11 +88,11 @@ namespace ClinAgenda.src.Application.DoctorUseCase
             var inforDoctor = new
             {
                 item = rawData
-                    .GroupBy(item => item.Id)
+                    .GroupBy(item => item.DoctorId)
                     .Select(group => new
                     {
                         id = group.Key,
-                        name = group.First().Name,
+                        name = group.First().DoctorName,
                         specialty = group
                             .Select(s => new
                             {
@@ -111,7 +117,7 @@ namespace ClinAgenda.src.Application.DoctorUseCase
             var doctorToUpdate = new DoctorDTO
             {
                 DoctorId = doctorId,
-                Name = doctorDto.DoctorName,
+                DoctorName = doctorDto.DoctorName,
                 StatusId = doctorDto.StatusId
             };
 

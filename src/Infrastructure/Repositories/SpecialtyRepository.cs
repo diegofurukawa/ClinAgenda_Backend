@@ -25,11 +25,11 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         {
             const string query = @"
                 SELECT 
-                    ID, 
-                    NAME,
+                    SpecialtyId, 
+                    SpecialtyName,
                     SCHEDULEDURATION 
                 FROM specialty
-                WHERE ID = @Id";
+                WHERE ID = @SpecialtyId";
 
             var specialty = await _connection.QueryFirstOrDefaultAsync<SpecialtyDTO>(query, new { Id = id });
 
@@ -42,12 +42,13 @@ namespace ClinAgenda.src.Infrastructure.Repositories
 
             var parameters = new DynamicParameters();
 
-            var countQuery = $"SELECT COUNT(DISTINCT S.ID) {queryBase}";
+            var countQuery = $"SELECT COUNT(DISTINCT S.SpecialtyId) {queryBase}";
             int total = await _connection.ExecuteScalarAsync<int>(countQuery, parameters);
 
             var dataQuery = $@"
-            SELECT ID, 
-            NAME, 
+            SELECT 
+                SpecialtyId, 
+                SpecialtyName, 
             SCHEDULEDURATION
             {queryBase}
             LIMIT @Limit OFFSET @Offset";
@@ -62,18 +63,18 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         public async Task<int> InsertSpecialtyAsync(SpecialtyInsertDTO specialtyInsertDTO)
         {
             string query = @"
-            INSERT INTO specialty (NAME, SCHEDULEDURATION) 
-            VALUES (@Name, @Scheduleduration);
+            INSERT INTO specialty (specialtyname, SCHEDULEDURATION) 
+            VALUES (@SpecialtyName, @Scheduleduration);
             SELECT LAST_INSERT_ID();";
             return await _connection.ExecuteScalarAsync<int>(query, specialtyInsertDTO);
         }
-        public async Task<int> DeleteSpecialtyAsync(int id)
+        public async Task<int> DeleteSpecialtyAsync(int specialtyid)
         {
             string query = @"
             DELETE FROM specialty
-            WHERE ID = @Id";
+            WHERE specialtyid = @SpecialtyId";
 
-            var parameters = new { Id = id };
+            var parameters = new { SpecialtyId = specialtyid };
 
             var rowsAffected = await _connection.ExecuteAsync(query, parameters);
 

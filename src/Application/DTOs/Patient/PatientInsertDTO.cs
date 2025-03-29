@@ -9,7 +9,7 @@ namespace ClinAgenda.src.Application.DTOs.Patient
     public class PatientInsertDTO
     {
         [Required(ErrorMessage = "O Nome do Paciente é obrigatório", AllowEmptyStrings = false)]
-        public required string @Name { get; set; }
+        public required string PatientName { get; set; }
 
         [Required(ErrorMessage = "O Telefone do Paciente é obrigatório", AllowEmptyStrings = false)]
         public required string PhoneNumber { get; set; }

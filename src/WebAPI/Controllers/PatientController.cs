@@ -42,11 +42,11 @@ namespace ClinAgenda.src.WebAPI.Controllers
         }
 
         [HttpGet("listById/{id}")]
-        public async Task<IActionResult> GetPatientByIdAsync(int id)
+        public async Task<IActionResult> GetPatientByIdAsync(int patientid)
         {
             try
             {
-                var doctor = await _patientUseCase.GetPatientByIdAsync(id);
+                var doctor = await _patientUseCase.GetPatientByIdAsync(patientid);
                 if (doctor == null) return NotFound();
                 return Ok(doctor);
             }
@@ -83,11 +83,11 @@ namespace ClinAgenda.src.WebAPI.Controllers
         }
         
         [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdatePatientAsync(int id, [FromBody] PatientInsertDTO patient)
+        public async Task<IActionResult> UpdatePatientAsync(int patientid, [FromBody] PatientInsertDTO patient)
         {
             try
             {
-                if (patient == null || string.IsNullOrWhiteSpace(patient.Name))
+                if (patient == null || string.IsNullOrWhiteSpace(patient.PatientName))
                 {
                     return BadRequest("Os dados do paciente são inválidos.");
                 }
@@ -101,14 +101,14 @@ namespace ClinAgenda.src.WebAPI.Controllers
                 // Formatar a data no formato aceito pelo MySQL
                 patient.BirthDate = birthDate.ToString("yyyy-MM-dd");
                 
-                var success = await _patientUseCase.UpdatePatientAsync(id, patient);
+                var success = await _patientUseCase.UpdatePatientAsync(patientid, patient);
                 
                 if (!success)
                 {
-                    return NotFound($"Paciente com ID {id} não encontrado ou não foi possível atualizar.");
+                    return NotFound($"Paciente com ID {patientid} não encontrado ou não foi possível atualizar.");
                 }
                 
-                var updatedPatient = await _patientUseCase.GetPatientByIdAsync(id);
+                var updatedPatient = await _patientUseCase.GetPatientByIdAsync(patientid);
                 return Ok(updatedPatient);
             }
             catch (Exception ex)
@@ -118,15 +118,15 @@ namespace ClinAgenda.src.WebAPI.Controllers
         }
         
         [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> DeletePatientAsync(int id)
+        public async Task<IActionResult> DeletePatientAsync(int patientid)
         {
             try
             {
-                var success = await _patientUseCase.DeletePatientAsync(id);
+                var success = await _patientUseCase.DeletePatientAsync(patientid);
                 
                 if (!success)
                 {
-                    return NotFound($"Paciente com ID {id} não encontrado ou não foi possível excluir.");
+                    return NotFound($"Paciente com ID {patientid} não encontrado ou não foi possível excluir.");
                 }
                 
                 return NoContent();

@@ -33,15 +33,15 @@ namespace ClinAgenda.src.WebAPI.Controllers
         }
 
         [HttpGet("listById/{id}")]
-        public async Task<IActionResult> GetStatusByIdAsync(int id)
+        public async Task<IActionResult> GetStatusByIdAsync(int statusid)
         {
             try
             {
-                var specialty = await _statusUseCase.GetStatusByIdAsync(id);
+                var specialty = await _statusUseCase.GetStatusByIdAsync(statusid);
 
                 if (specialty == null)
                 {
-                    return NotFound($"Status com ID {id} não encontrado.");
+                    return NotFound($"Status com ID {statusid} não encontrado.");
                 }
 
                 return Ok(specialty);
@@ -57,7 +57,7 @@ namespace ClinAgenda.src.WebAPI.Controllers
         {
             try
             {
-                if (status == null || string.IsNullOrWhiteSpace(status.Name))
+                if (status == null || string.IsNullOrWhiteSpace(status.StatusName))
                 {
                     return BadRequest("Os dados do status são inválidos.");
                 }

@@ -20,7 +20,7 @@ namespace ClinAgenda.src.Application.PatientUseCase
 
         public async Task<object> GetPatientsAsync
             (
-                string? name, 
+                string? patientname, 
                 string? documentNumber, 
                 int? statusId, 
                 int itemsPerPage, 
@@ -28,7 +28,7 @@ namespace ClinAgenda.src.Application.PatientUseCase
             )
         {
             var (total, rawData) = await _patientRepository.GetAllPatientAsync(
-                    name, 
+                    patientname, 
                     documentNumber, 
                     statusId, 
                     itemsPerPage, 
@@ -38,15 +38,15 @@ namespace ClinAgenda.src.Application.PatientUseCase
             var patients = rawData
                 .Select(p => new PatientListReturnDTO
                 {
-                    Id = p.Id,
-                    Name = p.Name,
+                    PatientId = p.PatientId,
+                    PatientName = p.PatientName,
                     PhoneNumber = p.PhoneNumber,
                     DocumentNumber = p.DocumentNumber,
                     BirthDate = p.BirthDate,
                     Status = new StatusDTO
                     {
-                        Id = p.StatusId,
-                        Name = p.StatusName
+                        StatusId = p.StatusId,
+                        StatusName = p.StatusName
                     }
                 })
                 .ToList();

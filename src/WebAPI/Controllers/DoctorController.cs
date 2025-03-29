@@ -29,7 +29,7 @@ namespace ClinAgenda.src.WebAPI.Controllers
         }
         [HttpGet("list")]
         public async Task<IActionResult> GetDoctors(
-            [FromQuery] string? name, 
+            [FromQuery] string? doctorname, 
             [FromQuery] int? specialtyId, 
             [FromQuery] int? statusId, 
             [FromQuery] int itemsPerPage = 10, 
@@ -38,7 +38,7 @@ namespace ClinAgenda.src.WebAPI.Controllers
         {
             try
             {
-                var result = await _doctorUseCase.GetDoctorsAsync(name, specialtyId, statusId, itemsPerPage, page);
+                var result = await _doctorUseCase.GetDoctorsAsync(doctorname, specialtyId, statusId, itemsPerPage, page);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -67,7 +67,7 @@ namespace ClinAgenda.src.WebAPI.Controllers
 
                 var specialties = await _specialtyUseCase.GetSpecialtiesByIdsAsync(doctor.Specialty);
 
-                var notFoundSpecialties = doctor.Specialty.Except(specialties.Select(s => s.Id)).ToList();
+                var notFoundSpecialties = doctor.Specialty.Except(specialties.Select(s => s.SpecialtyId)).ToList();
 
                 if (notFoundSpecialties.Any())
                 {
@@ -88,7 +88,7 @@ namespace ClinAgenda.src.WebAPI.Controllers
 
 
         [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateDoctorAsync(int id, [FromBody] DoctorInsertDTO doctor)
+        public async Task<IActionResult> UpdateDoctorAsync(int doctorid, [FromBody] DoctorInsertDTO doctor)
         {
             if (doctor == null) return BadRequest();
 
@@ -98,18 +98,18 @@ namespace ClinAgenda.src.WebAPI.Controllers
 
             var specialties = await _specialtyUseCase.GetSpecialtiesByIdsAsync(doctor.Specialty);
 
-            var notFoundSpecialties = doctor.Specialty.Except(specialties.Select(s => s.Id)).ToList();
+            var notFoundSpecialties = doctor.Specialty.Except(specialties.Select(s => s.SpecialtyId)).ToList();
 
             if (notFoundSpecialties.Any())
             {
                 return BadRequest(notFoundSpecialties.Count > 1 ? $"As especialidades com os IDs {string.Join(", ", notFoundSpecialties)} não existem." : $"A especialidade com o ID {notFoundSpecialties.First().ToString()} não existe.");
             }
 
-            bool updated = await _doctorUseCase.UpdateDoctorAsync(id, doctor);
+            bool updated = await _doctorUseCase.UpdateDoctorAsync(doctorid, doctor);
 
             if (!updated) return NotFound("Doutor não encontrado.");
 
-            var infosDoctorUpdate = await _doctorUseCase.GetDoctorByIdAsync(id);
+            var infosDoctorUpdate = await _doctorUseCase.GetDoctorByIdAsync(doctorid);
             return Ok(infosDoctorUpdate);
 
         }

@@ -18,16 +18,17 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         }
 
         // Método assíncrono para buscar um status pelo ID.
-        public async Task<StatusDTO> GetStatusByIdAsync(int id)
+        public async Task<StatusDTO> GetStatusByIdAsync(int statusid)
         {
             // Query SQL para selecionar o status pelo ID.
             string query = @"
-            SELECT ID, 
-                   NAME 
+            SELECT 
+                statusid
+                ,statusname
             FROM status
-            WHERE ID = @Id";
+            WHERE statusid = @StatusId";
 
-            var parameters = new { Id = id }; // Parâmetro da query.
+            var parameters = new { StatusId = statusid }; // Parâmetro da query.
 
             // Executa a consulta no banco e retorna o primeiro resultado ou null caso não encontre.
             var status = await _connection.QueryFirstOrDefaultAsync<StatusDTO>(query, parameters);
@@ -41,7 +42,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             // Query SQL para deletar um status pelo ID.
             string query = @"
             DELETE FROM status
-            WHERE ID = @Id";
+            WHERE statusid = @StatusId";
 
             var parameters = new { Id = id }; // Parâmetro da query.
 
@@ -56,7 +57,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         {
             // Query SQL para inserir um novo status e obter o ID gerado.
             string query = @"
-            INSERT INTO status (NAME) 
+            INSERT INTO status (statusname) 
             VALUES (@Name);
             SELECT LAST_INSERT_ID();"; // Obtém o ID do último registro inserido.
 
@@ -74,13 +75,13 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             var parameters = new DynamicParameters(); // Objeto para armazenar os parâmetros da query.
 
             // Query para contar o número total de registros sem a paginação.
-            var countQuery = $"SELECT COUNT(DISTINCT S.ID) {queryBase}";
+            var countQuery = $"SELECT COUNT(DISTINCT S.statusid) {queryBase}";
             int total = await _connection.ExecuteScalarAsync<int>(countQuery, parameters);
 
             // Query para buscar os dados paginados.
             var dataQuery = $@"
-            SELECT ID, 
-            NAME
+            SELECT statusid, 
+            statusname
             {queryBase}
             LIMIT @Limit OFFSET @Offset";
 

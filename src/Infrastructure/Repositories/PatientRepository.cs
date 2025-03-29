@@ -21,20 +21,20 @@ public readonly MySqlConnection _connection;
             _connection = connection;
         }
 
-        public async Task<PatientDTO> GetPatientByIdAsync(int id)
+        public async Task<PatientDTO> GetPatientByIdAsync(int patientid)
         {
             string query = @"
                 SELECT 
-                    p.id,
-                    p.name,
+                    p.patientid,
+                    p.patientname,
                     p.phonenumber,
                     p.documentnumber,
-                    p.birthdate,
+                    p.dbirthdate,
                     p.statusid
                 FROM patient p
-                WHERE p.id = @Id";
+                WHERE p.patientid = @Id";
 
-            var parameters = new { Id = id };
+            var parameters = new { PatientId = patientid };
             
             var patient = await _connection.QueryFirstOrDefaultAsync<PatientDTO>(query, parameters);
             
@@ -42,19 +42,26 @@ public readonly MySqlConnection _connection;
         }
 
 
-        public async Task<(int total, IEnumerable<PatientListDTO> patient)> GetAllPatientAsync(string? name, string? documentNumber, int? statusId, int itemsPerPage, int page)
+        public async Task<(
+            int total, 
+            IEnumerable<PatientListDTO> patient)> GetAllPatientAsync(
+                string? patientname, 
+                string? documentNumber, 
+                int? statusId, 
+                int itemsPerPage, 
+                int page)
         {
             var queryBase = new StringBuilder(@"     
                     FROM patient P
-                    INNER JOIN status S ON S.id = P.statusid
+                    INNER JOIN status S ON S.statusid = P.statusid
                     WHERE 1 = 1");
 
             var parameters = new DynamicParameters();
 
-            if (!string.IsNullOrEmpty(name))
+            if (!string.IsNullOrEmpty(patientname))
             {
-                queryBase.Append(" AND P.NAME LIKE @Name");
-                parameters.Add("Name", $"%{name}%");
+                queryBase.Append(" AND P.patientNAME LIKE @PatientName");
+                parameters.Add("Name", $"%{patientname}%");
             }
 
             if (!string.IsNullOrEmpty(documentNumber))
@@ -65,24 +72,24 @@ public readonly MySqlConnection _connection;
 
             if (statusId.HasValue)
             {
-                queryBase.Append(" AND S.ID = @StatusId");
+                queryBase.Append(" AND S.StatusId = @StatusId");
                 parameters.Add("StatusId", statusId.Value);
             }
 
-            var countQuery = $"SELECT COUNT(DISTINCT P.ID) {queryBase}";
+            var countQuery = $"SELECT COUNT(DISTINCT P.patientid) {queryBase}";
             int total = await _connection.ExecuteScalarAsync<int>(countQuery, parameters);
 
             var dataQuery = $@"
                     SELECT 
-                        P.ID, 
-                        P.NAME,
+                        P.patientid, 
+                        P.patientname,
                         P.PHONENUMBER,
                         P.DOCUMENTNUMBER,
-                        P.BIRTHDATE ,
-                        P.STATUSID AS STATUSID, 
-                        S.NAME AS STATUSNAME
+                        P.dBIRTHDATE,
+                        P.STATUSID, 
+                        S.STATUSNAME
                     {queryBase}
-                    ORDER BY P.ID
+                    ORDER BY P.patientid
                     LIMIT @Limit OFFSET @Offset";
 
             parameters.Add("Limit", itemsPerPage);
@@ -107,7 +114,7 @@ public readonly MySqlConnection _connection;
                 // Preparar os parâmetros para garantir o formato correto
                 var parameters = new
                 {
-                    patientInsertDTO.Name,
+                    patientInsertDTO.PatientName,
                     patientInsertDTO.PhoneNumber,
                     patientInsertDTO.DocumentNumber,
                     BirthDate = normalizedDate,
@@ -115,8 +122,8 @@ public readonly MySqlConnection _connection;
                 };
                 
                 string query = @"
-                    INSERT INTO patient (name, phonenumber, documentnumber, birthdate, statusid) 
-                    VALUES (@Name, @PhoneNumber, @DocumentNumber, @BirthDate, @StatusId);
+                    INSERT INTO patient (patientname, phonenumber, documentnumber, birthdate, statusid) 
+                    VALUES (@PatientName, @PhoneNumber, @DocumentNumber, @BirthDate, @StatusId);
                     SELECT LAST_INSERT_ID();";
                     
                 return await _connection.ExecuteScalarAsync<int>(query, parameters);
@@ -137,7 +144,7 @@ public readonly MySqlConnection _connection;
         {
             string query = @"
                 UPDATE patient 
-                SET name = @Name, 
+                SET patientname = @PatientName, 
                     phonenumber = @PhoneNumber, 
                     documentnumber = @DocumentNumber, 
                     birthdate = @BirthDate, 
@@ -147,7 +154,7 @@ public readonly MySqlConnection _connection;
             var parameters = new
             {
                 Id = id,
-                patientInsertDTO.Name,
+                patientInsertDTO.PatientName,
                 patientInsertDTO.PhoneNumber,
                 patientInsertDTO.DocumentNumber,
                 patientInsertDTO.BirthDate,
@@ -162,7 +169,7 @@ public readonly MySqlConnection _connection;
         {
             string query = @"
                 DELETE FROM patient
-                WHERE id = @Id";
+                WHERE patientid = @Id";
 
             var parameters = new { Id = id };
             

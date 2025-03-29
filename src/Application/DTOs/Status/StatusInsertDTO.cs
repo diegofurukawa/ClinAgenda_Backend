@@ -7,6 +7,6 @@ namespace ClinAgenda.src.Application.DTOs.Status
 {
     public class StatusInsertDTO
     {
-        public required string Name { get; set; }
+        public required string StatusName { get; set; }
     }
 }

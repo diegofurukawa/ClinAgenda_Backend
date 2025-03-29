@@ -41,7 +41,7 @@ namespace ClinAgenda.src.Application.StatusUseCase
             // Cria uma nova instância de StatusInsertDTO com os dados fornecidos.
             var status = new StatusInsertDTO
             {
-                Name = statusDTO.Name
+                StatusName = statusDTO.StatusName
             };
 
             // Chama o repositório para inserir o novo status e obtém o ID gerado.

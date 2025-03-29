@@ -2,8 +2,8 @@
 # Com todos os arquivos em uma única pasta (estrutura plana)
 
 # Diretorios fixos
-$SOURCE_DIR = "$env:USERPROFILE\GitHub\ClinAgendaBootcamp"
-$DEST_DIR = "$env:USERPROFILE\GitHub\BKPs\ClinAgendaBootcamp"
+$SOURCE_DIR = "$env:USERPROFILE\GitHub\ClinAgenda"
+$DEST_DIR = "$env:USERPROFILE\GitHub\BKPs\ClinAgenda"
 
 # Verifica se o diretorio fonte existe
 if (-not (Test-Path $SOURCE_DIR)) {
