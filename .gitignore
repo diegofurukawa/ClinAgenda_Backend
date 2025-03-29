@@ -10,3 +10,4 @@ obj/*
 backup/
 bin/
 obj/
+appsettings.json
