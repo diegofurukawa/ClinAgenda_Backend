@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ClinAgendaAPI
+namespace ClinAgenda
 {
     public class Specialty
     {
-        public int Id { get; set; }
-        public required string Name { get; set; }
-        public int ScheduleDuration { get; set; }
+        public int SpecialtyId { get; set; }
+        public required string SpecialtyName { get; set; }
+        public int NScheduleDuration { get; set; }
+        public DateTime DCreated { get; set; }
+        public DateTime? DLastUpdated { get; set; }
+        public bool LActive { get; set; } = true;
     }
 }

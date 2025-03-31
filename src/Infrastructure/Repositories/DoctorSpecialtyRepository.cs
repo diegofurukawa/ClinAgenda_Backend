@@ -17,25 +17,119 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         {
             _connection = connection;
         }
-        public async Task InsertAsync(DoctorSpecialtyDTO doctor)
+        
+        public async Task InsertAsync(DoctorSpecialtyDTO doctorSpecialtyDTO)
         {
             string query = @"
-            INSERT INTO DOCTOR_SPECIALTY (DoctorId, SpecialtyId) 
-            VALUES (@DoctorId, @SpecialtyId);";
-
-            var parameters = doctor.SpecialtyId.Select(specialtyId => new
+            INSERT INTO DOCTOR_SPECIALTY (
+                DoctorId, 
+                SpecialtyId, 
+                D_CREATED, 
+                L_ACTIVE
+            ) 
+            VALUES (
+                @DoctorId, 
+                @SpecialtyId, 
+                NOW(), 
+                @LActive
+            );";
+            
+            if (doctorSpecialtyDTO.SpecialtyId is List<int> specialtyIds)
             {
-                DoctorId = doctor.DoctorId,
-                SpecialtyId = specialtyId
-            });
+                var parameters = specialtyIds.Select(specialtyId => new
+                {
+                    DoctorId = doctorSpecialtyDTO.DoctorId,
+                    SpecialtyId = specialtyId,
+                    LActive = doctorSpecialtyDTO.LActive
+                });
 
-            await _connection.ExecuteAsync(query, parameters);
+                await _connection.ExecuteAsync(query, parameters);
+            }
+            else
+            {
+                // Para compatibilidade com chamadas antigas que possam usar SpecialtyId como um único valor
+                var parameter = new
+                {
+                    doctorSpecialtyDTO.DoctorId,
+                    SpecialtyId = (int)doctorSpecialtyDTO.SpecialtyId,
+                    doctorSpecialtyDTO.LActive
+                };
+                
+                await _connection.ExecuteAsync(query, parameter);
+            }
         }
+        
         public async Task DeleteByDoctorIdAsync(int doctorId)
         {
             string query = "DELETE FROM doctor_specialty WHERE DoctorId = @DoctorId";
             await _connection.ExecuteAsync(query, new { DoctorId = doctorId });
         }
-    }
+        
+        public async Task<IEnumerable<DoctorSpecialtyDetailDTO>> GetByDoctorIdAsync(int doctorId)
+        {
+            string query = @"
+            SELECT 
+                DoctorId,
+                SpecialtyId,
+                D_CREATED AS DCreated,
+                D_LAST_UPDATED AS DLastUpdated,
+                L_ACTIVE AS LActive
+            FROM doctor_specialty
+            WHERE DoctorId = @DoctorId";
+            
+            return await _connection.QueryAsync<DoctorSpecialtyDetailDTO>(query, new { DoctorId = doctorId });
+        }
 
+        public async Task<IEnumerable<DoctorSpecialtyDetailDTO>> GetBySpecialtyIdAsync(int specialtyId)
+        {
+            string query = @"
+            SELECT 
+                DoctorId,
+                SpecialtyId,
+                D_CREATED AS DCreated,
+                D_LAST_UPDATED AS DLastUpdated,
+                L_ACTIVE AS LActive
+            FROM doctor_specialty
+            WHERE SpecialtyId = @SpecialtyId";
+            
+            return await _connection.QueryAsync<DoctorSpecialtyDetailDTO>(query, new { SpecialtyId = specialtyId });
+        }
+
+        public async Task<bool> ToggleActiveAsync(int doctorId, int specialtyId, bool active)
+        {
+            string query = @"
+            UPDATE doctor_specialty
+            SET 
+                L_ACTIVE = @Active,
+                D_LAST_UPDATED = NOW()
+            WHERE DoctorId = @DoctorId AND SpecialtyId = @SpecialtyId";
+            
+            var parameters = new
+            {
+                DoctorId = doctorId,
+                SpecialtyId = specialtyId,
+                Active = active
+            };
+            
+            int rowsAffected = await _connection.ExecuteAsync(query, parameters);
+            return rowsAffected > 0;
+        }
+
+        public async Task<bool> ExistsAsync(int doctorId, int specialtyId)
+        {
+            string query = @"
+            SELECT COUNT(1)
+            FROM doctor_specialty
+            WHERE DoctorId = @DoctorId AND SpecialtyId = @SpecialtyId";
+            
+            var parameters = new
+            {
+                DoctorId = doctorId,
+                SpecialtyId = specialtyId
+            };
+            
+            int count = await _connection.ExecuteScalarAsync<int>(query, parameters);
+            return count > 0;
+        }
+    }
 }

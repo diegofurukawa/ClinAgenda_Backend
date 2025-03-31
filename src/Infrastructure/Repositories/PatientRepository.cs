@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ClinAgenda.src.Application.DTOs.Patient;
-using ClinAgenda.src.Application.DTOs.Status;
 using ClinAgenda.src.Core.Interfaces;
 using Dapper;
 using MySql.Data.MySqlClient;
@@ -13,43 +11,43 @@ namespace ClinAgenda.src.Infrastructure.Repositories
 {
     public class PatientRepository : IPatientRepository
     {
-        // Conexão com o banco pode ser acessada pelo UseCase para validações
-public readonly MySqlConnection _connection;
+        public readonly MySqlConnection _connection;
 
         public PatientRepository(MySqlConnection connection)
         {
             _connection = connection;
         }
 
-        public async Task<PatientDTO> GetPatientByIdAsync(int patientid)
+        public async Task<PatientDTO> GetPatientByIdAsync(int id)
         {
             string query = @"
                 SELECT 
-                    p.patientid,
-                    p.patientname,
-                    p.phonenumber,
-                    p.documentnumber,
-                    p.dbirthdate,
-                    p.statusid
+                    p.id AS PatientId,
+                    p.name AS PatientName,
+                    p.phonenumber AS PhoneNumber,
+                    p.documentnumber AS DocumentNumber,
+                    p.birthdate AS DBirthDate,
+                    p.statusid AS StatusId,
+                    p.d_created AS DCreated,
+                    p.d_last_updated AS DLastUpdated,
+                    p.l_active AS LActive
                 FROM patient p
-                WHERE p.patientid = @Id";
+                WHERE p.id = @Id";
 
-            var parameters = new { PatientId = patientid };
+            var parameters = new { Id = id };
             
             var patient = await _connection.QueryFirstOrDefaultAsync<PatientDTO>(query, parameters);
             
             return patient;
         }
 
-
-        public async Task<(
-            int total, 
-            IEnumerable<PatientListDTO> patient)> GetAllPatientAsync(
-                string? patientname, 
-                string? documentNumber, 
-                int? statusId, 
-                int itemsPerPage, 
-                int page)
+        public async Task<(int total, IEnumerable<PatientListDTO> patients)> GetAllPatientAsync(
+            string? name, 
+            string? documentNumber, 
+            int? statusId,
+            bool? lActive,
+            int itemsPerPage, 
+            int page)
         {
             var queryBase = new StringBuilder(@"     
                     FROM patient P
@@ -58,10 +56,10 @@ public readonly MySqlConnection _connection;
 
             var parameters = new DynamicParameters();
 
-            if (!string.IsNullOrEmpty(patientname))
+            if (!string.IsNullOrEmpty(name))
             {
-                queryBase.Append(" AND P.patientNAME LIKE @PatientName");
-                parameters.Add("Name", $"%{patientname}%");
+                queryBase.Append(" AND P.NAME LIKE @Name");
+                parameters.Add("Name", $"%{name}%");
             }
 
             if (!string.IsNullOrEmpty(documentNumber))
@@ -72,24 +70,33 @@ public readonly MySqlConnection _connection;
 
             if (statusId.HasValue)
             {
-                queryBase.Append(" AND S.StatusId = @StatusId");
+                queryBase.Append(" AND S.statusid = @StatusId");
                 parameters.Add("StatusId", statusId.Value);
             }
+            
+            if (lActive.HasValue)
+            {
+                queryBase.Append(" AND P.L_ACTIVE = @LActive");
+                parameters.Add("LActive", lActive.Value);
+            }
 
-            var countQuery = $"SELECT COUNT(DISTINCT P.patientid) {queryBase}";
+            var countQuery = $"SELECT COUNT(DISTINCT P.ID) {queryBase}";
             int total = await _connection.ExecuteScalarAsync<int>(countQuery, parameters);
 
             var dataQuery = $@"
                     SELECT 
-                        P.patientid, 
-                        P.patientname,
-                        P.PHONENUMBER,
-                        P.DOCUMENTNUMBER,
-                        P.dBIRTHDATE,
-                        P.STATUSID, 
-                        S.STATUSNAME
+                        P.PatientId, 
+                        P.PatientName,
+                        P.PHONENUMBER AS PhoneNumber,
+                        P.DOCUMENTNUMBER AS DocumentNumber,
+                        P.DBirthDate,
+                        P.StatusId, 
+                        S.StatusName,
+                        P.D_CREATED AS DCreated,
+                        P.D_LAST_UPDATED AS DLastUpdated,
+                        P.L_ACTIVE AS LActive
                     {queryBase}
-                    ORDER BY P.patientid
+                    ORDER BY P.ID
                     LIMIT @Limit OFFSET @Offset";
 
             parameters.Add("Limit", itemsPerPage);
@@ -105,8 +112,8 @@ public readonly MySqlConnection _connection;
             try
             {
                 // Verificar e normalizar a data se necessário
-                string normalizedDate = patientInsertDTO.BirthDate;
-                if (DateTime.TryParse(patientInsertDTO.BirthDate, out DateTime birthDate))
+                string normalizedDate = patientInsertDTO.DBirthDate;
+                if (DateTime.TryParse(patientInsertDTO.DBirthDate, out DateTime birthDate))
                 {
                     normalizedDate = birthDate.ToString("yyyy-MM-dd");
                 }
@@ -117,13 +124,30 @@ public readonly MySqlConnection _connection;
                     patientInsertDTO.PatientName,
                     patientInsertDTO.PhoneNumber,
                     patientInsertDTO.DocumentNumber,
-                    BirthDate = normalizedDate,
-                    patientInsertDTO.StatusId
+                    DBirthDate = normalizedDate,
+                    patientInsertDTO.StatusId,
+                    patientInsertDTO.LActive
                 };
                 
                 string query = @"
-                    INSERT INTO patient (patientname, phonenumber, documentnumber, birthdate, statusid) 
-                    VALUES (@PatientName, @PhoneNumber, @DocumentNumber, @BirthDate, @StatusId);
+                    INSERT INTO patient (
+                        name, 
+                        phonenumber, 
+                        documentnumber, 
+                        birthdate, 
+                        statusid, 
+                        d_created, 
+                        l_active
+                    ) 
+                    VALUES (
+                        @PatientName, 
+                        @PhoneNumber, 
+                        @DocumentNumber, 
+                        @DBirthDate, 
+                        @StatusId, 
+                        NOW(), 
+                        @LActive
+                    );
                     SELECT LAST_INSERT_ID();";
                     
                 return await _connection.ExecuteScalarAsync<int>(query, parameters);
@@ -139,43 +163,76 @@ public readonly MySqlConnection _connection;
             }
         }
 
-
         public async Task<int> UpdatePatientAsync(int id, PatientInsertDTO patientInsertDTO)
         {
-            string query = @"
-                UPDATE patient 
-                SET patientname = @PatientName, 
-                    phonenumber = @PhoneNumber, 
-                    documentnumber = @DocumentNumber, 
-                    birthdate = @BirthDate, 
-                    statusid = @StatusId
-                WHERE id = @Id";
-
-            var parameters = new
+            try
             {
-                Id = id,
-                patientInsertDTO.PatientName,
-                patientInsertDTO.PhoneNumber,
-                patientInsertDTO.DocumentNumber,
-                patientInsertDTO.BirthDate,
-                patientInsertDTO.StatusId
-            };
-            
-            return await _connection.ExecuteAsync(query, parameters);
-        }
+                // Verificar e normalizar a data se necessário
+                string normalizedDate = patientInsertDTO.DBirthDate;
+                if (DateTime.TryParse(patientInsertDTO.DBirthDate, out DateTime birthDate))
+                {
+                    normalizedDate = birthDate.ToString("yyyy-MM-dd");
+                }
+                
+                string query = @"
+                    UPDATE patient 
+                    SET 
+                        name = @PatientName, 
+                        phonenumber = @PhoneNumber, 
+                        documentnumber = @DocumentNumber, 
+                        birthdate = @DBirthDate, 
+                        statusid = @StatusId,
+                        d_last_updated = NOW(),
+                        l_active = @LActive
+                    WHERE id = @Id";
 
+                var parameters = new
+                {
+                    Id = id,
+                    patientInsertDTO.PatientName,
+                    patientInsertDTO.PhoneNumber,
+                    patientInsertDTO.DocumentNumber,
+                    DBirthDate = normalizedDate,
+                    patientInsertDTO.StatusId,
+                    patientInsertDTO.LActive
+                };
+                
+                return await _connection.ExecuteAsync(query, parameters);
+            }
+            catch (Exception ex)
+            {
+                // Melhorar a mensagem de erro para capturar problemas relacionados à data
+                if (ex.Message.Contains("Incorrect date value") || ex.Message.Contains("birthdate"))
+                {
+                    throw new Exception($"Formato de data inválido para o campo birthDate. Use o formato YYYY-MM-DD. Erro original: {ex.Message}");
+                }
+                throw;
+            }
+        }
 
         public async Task<int> DeletePatientAsync(int id)
         {
             string query = @"
                 DELETE FROM patient
-                WHERE patientid = @Id";
+                WHERE id = @Id";
 
             var parameters = new { Id = id };
             
             return await _connection.ExecuteAsync(query, parameters);
         }
+        
+        public async Task<int> TogglePatientActiveAsync(int id, bool active)
+        {
+            string query = @"
+                UPDATE patient 
+                SET 
+                    l_active = @Active,
+                    d_last_updated = NOW()
+                WHERE id = @Id";
 
-
+            var parameters = new { Id = id, Active = active };
+            
+            return await _connection.ExecuteAsync(query, parameters);
+        }
     }
 }

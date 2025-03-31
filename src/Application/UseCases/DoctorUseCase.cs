@@ -14,127 +14,250 @@ namespace ClinAgenda.src.Application.DoctorUseCase
         private readonly IDoctorRepository _doctorRepository;
         private readonly IDoctorSpecialtyRepository _doctorSpecialtyRepository;
         private readonly ISpecialtyRepository _specialtyRepository;
-        public DoctorUseCase(IDoctorRepository doctorRepository, IDoctorSpecialtyRepository doctorspecialtyRepository, ISpecialtyRepository specialtyRepository)
+        private readonly IStatusRepository _statusRepository;
+
+        public DoctorUseCase(
+            IDoctorRepository doctorRepository, 
+            IDoctorSpecialtyRepository doctorspecialtyRepository, 
+            ISpecialtyRepository specialtyRepository,
+            IStatusRepository statusRepository)
         {
             _doctorRepository = doctorRepository;
             _doctorSpecialtyRepository = doctorspecialtyRepository;
             _specialtyRepository = specialtyRepository;
+            _statusRepository = statusRepository;
         }
 
-        public async Task<object> GetDoctorsAsync(
-            string? doctorname, 
+        public async Task<DoctorPagedResultDTO> GetDoctorsAsync(
+            string? name, 
             int? specialtyId, 
             int? statusId, 
-            int itemsPerPage, 
-            int page
-            )
+            bool? isActive,
+            int pageSize, 
+            int page)
         {
-            int offset = (page - 1) * itemsPerPage;
+            int offset = (page - 1) * pageSize;
 
-            var doctors = (await _doctorRepository.GetDoctorsAsync(doctorname, specialtyId, statusId, offset, itemsPerPage)).ToList();
+            var doctors = (await _doctorRepository.GetDoctorsAsync(
+                name, 
+                specialtyId, 
+                statusId, 
+                isActive, 
+                offset,
+                pageSize)).ToList();
 
             if (!doctors.Any())
-                return new { total = 0, items = new List<DoctorListReturnDTO>() };
+                return new DoctorPagedResultDTO 
+                { 
+                    Total = 0, 
+                    Items = new List<DoctorListItemDTO>() 
+                };
 
-            var doctorIds = doctors.Select(d => d.DoctorId).ToArray();
+            var doctorIds = doctors.Select(d => d.Id).ToArray();
             var specialties = (await _doctorRepository.GetDoctorSpecialtyAsync(doctorIds)).ToList();
 
-            var result = doctors.Select(d => new DoctorListReturnDTO
+            // Obter informações de status para todos os médicos
+            var statusIds = doctors.Select(d => d.StatusId).Distinct().ToList();
+            var statusList = new Dictionary<int, StatusDTO>();
+            
+            foreach (var id in statusIds)
             {
-                DoctorId = d.DoctorId,
-                DoctorName = d.DoctorName,
-                Status = new StatusDTO
+                var status = await _statusRepository.GetStatusByIdAsync(id);
+                if (status != null)
                 {
-                    StatusId = d.StatusId,
-                    StatusName = d.StatusName
-                },
-                Specialty = specialties
-            .Where(s => s.DoctorId == d.DoctorId)
-            .Select(s => new SpecialtyDTO
-            {
-                SpecialtyId = s.SpecialtyId,
-                SpecialtyName = s.SpecialtyName,
-                nScheduleDuration = s.nScheduleDuration
-            })
-            .ToList()
-            });
+                    statusList[id] = status;
+                }
+            }
 
-            return new
+            // Transformar o resultado em DTOs de listagem
+            var doctorListItems = doctors.Select(d => new DoctorListItemDTO
             {
-                total = result.Count(),
-                items = result.ToList()
+                Id = d.Id,
+                Name = d.Name,
+                StatusName = statusList.ContainsKey(d.StatusId) 
+                    ? statusList[d.StatusId].StatusName
+                    : "Desconhecido",
+                SpecialtyNames = specialties
+                    .Where(s => s.DoctorId == d.Id)
+                    .Select(s => s.SpecialtyName)
+                    .ToList(),
+                IsActive = d.LActive
+            }).ToList();
+
+            return new DoctorPagedResultDTO
+            {
+                Total = doctorListItems.Count,
+                Items = doctorListItems
             };
         }
-        public async Task<int> CreateDoctorAsync(DoctorInsertDTO doctorDto)
+
+        public async Task<int> CreateDoctorAsync(DoctorCreateDTO doctorDto)
         {
-            var newDoctorId = await _doctorRepository.InsertDoctorAsync(doctorDto);
-
-            var doctor_specialities = new DoctorSpecialtyDTO
+            // Verificar se o status existe
+            var status = await _statusRepository.GetStatusByIdAsync(doctorDto.StatusId);
+            if (status == null)
             {
-                DoctorId = newDoctorId,
-                SpecialtyId = doctorDto.Specialty
+                throw new ArgumentException($"Status com ID {doctorDto.StatusId} não existe.");
+            }
+            
+            // Verificar se todas as especialidades existem
+            var specialties = await _specialtyRepository.GetAllSpecialtyAsync();
+            var specialtyIds = specialties.specialties.Select(s => s.SpecialtyId).ToList();
+            
+            foreach (var specialtyId in doctorDto.SpecialtyIds)
+            {
+                if (!specialtyIds.Contains(specialtyId))
+                {
+                    throw new ArgumentException($"Especialidade com ID {specialtyId} não existe.");
+                }
+            }
+            
+            // Mapear para o DTO que o repositório espera (adaptação para evitar alterações no repositório)
+            var repositoryDto = new DoctorInsertDTO
+            {
+                DoctorName = doctorDto.Name,
+                StatusId = doctorDto.StatusId,
+                Specialty = doctorDto.SpecialtyIds,
+                LActive = doctorDto.IsActive
             };
+            
+            var newDoctorId = await _doctorRepository.InsertDoctorAsync(repositoryDto);
 
-            await _doctorSpecialtyRepository.InsertAsync(doctor_specialities);
+            // Sem necessidade de inserir especialidades separadamente, pois o repositório já faz isso
 
             return newDoctorId;
         }
-
-
-        public async Task<object> GetDoctorByIdAsync(int id)
+        
+        public async Task<DoctorDetailDTO?> GetDoctorByIdAsync(int id)
         {
             var rawData = await _doctorRepository.GetDoctorByIdAsync(id);
+            
+            if (!rawData.Any())
+                return null;
 
-            var inforDoctor = new
-            {
-                item = rawData
-                    .GroupBy(item => item.DoctorId)
-                    .Select(group => new
-                    {
-                        id = group.Key,
-                        name = group.First().DoctorName,
-                        specialty = group
-                            .Select(s => new
-                            {
-                                id = s.SpecialtyId,
-                                name = s.SpecialtyName
-                            })
-                            .ToList(),
-                        status = new
-                        {
-                            id = group.First().StatusId,
-                            name = group.First().StatusName
-                        }
-                    }).First()
-                
+            // Obter informações detalhadas de status
+            var statusId = rawData.First().StatusId;
+            var statusInfo = await _statusRepository.GetStatusByIdAsync(statusId);
+            
+            var statusDto = new StatusResponseDTO 
+            { 
+                StatusId = statusId, 
+                StatusName = statusInfo?.StatusName ?? rawData.First().StatusName, 
+                StatusType = statusInfo?.StatusType ?? "doctor",
+                lActive = statusInfo?.LActive ?? rawData.First().LActive
             };
 
-            return inforDoctor;
+            var doctorData = rawData.First();
 
+            // Obter as relações doctor_specialty com detalhes de ativação
+            var doctorSpecialties = await _doctorSpecialtyRepository.GetByDoctorIdAsync(id);
+
+            // Mapear para o novo DTO
+            var specialties = rawData
+                .Where(s => s.SpecialtyId > 0)
+                .Select(s => new SpecialtyResponseDTO
+                {
+                    SpecialtyId = s.SpecialtyId,
+                    SpecialtyName = s.SpecialtyName,
+                    ScheduleDuration = s.NScheduleDuration,
+                    IsActive = doctorSpecialties
+                        .FirstOrDefault(ds => ds.SpecialtyId == s.SpecialtyId)?.LActive ?? true
+                })
+                .ToList();
+
+            return new DoctorDetailDTO
+            {
+                Id = doctorData.Id,
+                Name = doctorData.Name,
+                Status = statusDto,
+                Specialties = specialties,
+                CreatedAt = doctorData.DCreated,
+                LastUpdatedAt = doctorData.DLastUpdated,
+                IsActive = doctorData.LActive
+            };
         }
-        public async Task<bool> UpdateDoctorAsync(int doctorId, DoctorInsertDTO doctorDto)
+
+        public async Task<bool> UpdateDoctorAsync(int doctorId, DoctorUpdateDTO doctorDto)
         {
-            var doctorToUpdate = new DoctorDTO
+            // Verificar se o médico existe
+            var doctorData = await _doctorRepository.GetDoctorByIdAsync(doctorId);
+            if (!doctorData.Any())
             {
-                DoctorId = doctorId,
-                DoctorName = doctorDto.DoctorName,
-                StatusId = doctorDto.StatusId
+                return false;
+            }
+            
+            // Verificar se o status existe
+            var status = await _statusRepository.GetStatusByIdAsync(doctorDto.StatusId);
+            if (status == null)
+            {
+                throw new ArgumentException($"Status com ID {doctorDto.StatusId} não existe.");
+            }
+            
+            // Verificar se todas as especialidades existem
+            var specialties = await _specialtyRepository.GetAllSpecialtyAsync();
+            var specialtyIds = specialties.specialties.Select(s => s.SpecialtyId).ToList();
+            
+            foreach (var specialtyId in doctorDto.SpecialtyIds)
+            {
+                if (!specialtyIds.Contains(specialtyId))
+                {
+                    throw new ArgumentException($"Especialidade com ID {specialtyId} não existe.");
+                }
+            }
+
+            // Mapear para o DTO que o repositório espera (adaptação para manter compatibilidade)
+            var repositoryUpdateDto = new DoctorInsertDTO
+            {
+                DoctorName = doctorDto.Name,
+                StatusId = doctorDto.StatusId,
+                Specialty = doctorDto.SpecialtyIds,
+                LActive = doctorData.First().LActive // Mantém o estado ativo atual
             };
 
-            await _doctorRepository.UpdateDoctorAsync(doctorToUpdate);
+            // Atualizar o médico
+            var updated = await _doctorRepository.UpdateDoctorAsync(doctorId, repositoryUpdateDto);
 
-            await _doctorSpecialtyRepository.DeleteByDoctorIdAsync(doctorId);
-
-            var doctorSpecialties = new DoctorSpecialtyDTO
+            return updated;
+        }
+        
+        public async Task<bool> ToggleDoctorActiveAsync(int id, bool active)
+        {
+            // Verificar se o médico existe
+            var doctorData = await _doctorRepository.GetDoctorByIdAsync(id);
+            if (!doctorData.Any())
             {
-                DoctorId = doctorId,
-                SpecialtyId = doctorDto.Specialty
-            };
-
-            await _doctorSpecialtyRepository.InsertAsync(doctorSpecialties);
-
-            return true;
+                return false;
+            }
+            
+            var rowsAffected = await _doctorRepository.ToggleDoctorActiveAsync(id, active);
+            return rowsAffected > 0;
+        }
+        
+        public async Task<bool> DeleteDoctorAsync(int id)
+        {
+            // Verificar se o médico existe
+            var doctorData = await _doctorRepository.GetDoctorByIdAsync(id);
+            if (!doctorData.Any())
+            {
+                return false;
+            }
+            
+            // Excluir o médico (o repositório já se encarrega de excluir as relações)
+            var rowsAffected = await _doctorRepository.DeleteDoctorByIdAsync(id);
+            return rowsAffected > 0;
+        }
+        
+        public async Task<bool> ToggleDoctorSpecialtyActiveAsync(int doctorId, int specialtyId, bool active)
+        {
+            // Verificar se a relação existe
+            bool exists = await _doctorSpecialtyRepository.ExistsAsync(doctorId, specialtyId);
+            if (!exists)
+            {
+                return false;
+            }
+            
+            // Ativar/desativar a relação
+            return await _doctorSpecialtyRepository.ToggleActiveAsync(doctorId, specialtyId, active);
         }
     }
-
 }

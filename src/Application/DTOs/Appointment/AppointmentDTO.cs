@@ -1,6 +1,11 @@
-namespace ClinAgenda
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace ClinAgenda.src.Application.DTOs.Appointment
 {
-    public class Appointment
+    public class AppointmentDTO
     {
         public int AppointmentId { get; set; }
         public required int PatientId { get; set; }
@@ -11,6 +16,6 @@ namespace ClinAgenda
         public required string Observation { get; set; }
         public DateTime DCreated { get; set; }
         public DateTime? DLastUpdated { get; set; }
-        public bool LActive { get; set; } = true;
+        public bool LActive { get; set; }
     }
 }

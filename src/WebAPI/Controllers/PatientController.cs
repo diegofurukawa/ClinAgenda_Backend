@@ -1,9 +1,9 @@
+using System;
+using System.Threading.Tasks;
 using ClinAgenda.src.Application.DTOs.Patient;
 using ClinAgenda.src.Application.PatientUseCase;
 using ClinAgenda.src.Application.StatusUseCase;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 
 namespace ClinAgenda.src.WebAPI.Controllers
 {
@@ -21,18 +21,25 @@ namespace ClinAgenda.src.WebAPI.Controllers
         }
 
         [HttpGet("list")]
-
         public async Task<IActionResult> GetPatientsAsync(
             [FromQuery] string? name, 
             [FromQuery] string? documentNumber, 
-            [FromQuery] int? patientId,
+            [FromQuery] int? statusId,
+            [FromQuery] bool? lActive,
             [FromQuery] int itemsPerPage = 10, 
             [FromQuery] int page = 1
             )
         {
             try
             {
-                var result = await _patientUseCase.GetPatientsAsync(name, documentNumber, patientId, itemsPerPage, page);
+                var result = await _patientUseCase.GetPatientsAsync(
+                    name, 
+                    documentNumber, 
+                    statusId,
+                    lActive,
+                    itemsPerPage, 
+                    page);
+                    
                 return Ok(result);
             }
             catch (Exception ex)
@@ -42,48 +49,22 @@ namespace ClinAgenda.src.WebAPI.Controllers
         }
 
         [HttpGet("listById/{id}")]
-        public async Task<IActionResult> GetPatientByIdAsync(int patientid)
+        public async Task<IActionResult> GetPatientByIdAsync(int id)        
         {
             try
             {
-                var doctor = await _patientUseCase.GetPatientByIdAsync(patientid);
-                if (doctor == null) return NotFound();
-                return Ok(doctor);
+                var patient = await _patientUseCase.GetPatientByIdAsync(id);
+                if (patient == null) return NotFound();
+                return Ok(patient);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Erro interno do Servidor: {ex.Message}");
+                return StatusCode(500, $"{ex.Message}");
             }
         }
 
         [HttpPost("insert")]
-        // public async Task<IActionResult> CreatePatientAsync([FromBody] PatientInsertDTO patient)
         public async Task<IActionResult> CreatePatientAsync([FromBody] PatientInsertDTO patient)
-        {
-            try
-            {
-                var hasStatus = await _statusUseCase.GetStatusByIdAsync(patient.StatusId);
-                if (hasStatus == null)
-                    return BadRequest($"O status ID {patient.StatusId} não existe");
-
-                var createdPatientId = await _patientUseCase.CreatePatientAsync(patient);
-
-                if (!(createdPatientId > 0))
-                {
-                    return StatusCode(500, "Erro ao criar a Paciente.");
-                }
-                var infosPatientCreated = await _patientUseCase.GetPatientByIdAsync(createdPatientId);
-
-                return Ok(infosPatientCreated);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Erro interno do Servidor: {ex.Message}");
-            }
-        }
-        
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdatePatientAsync(int patientid, [FromBody] PatientInsertDTO patient)
         {
             try
             {
@@ -92,24 +73,58 @@ namespace ClinAgenda.src.WebAPI.Controllers
                     return BadRequest("Os dados do paciente são inválidos.");
                 }
                 
-                // Validar formato da data
-                if (!DateTime.TryParse(patient.BirthDate, out DateTime birthDate))
+                var hasStatus = await _statusUseCase.GetStatusByIdAsync(patient.StatusId);
+                if (hasStatus == null)
+                    return BadRequest($"O status ID {patient.StatusId} não existe");
+
+                var createdPatientId = await _patientUseCase.CreatePatientAsync(patient);
+
+                if (!(createdPatientId > 0))
                 {
-                    return BadRequest("A data de nascimento deve estar no formato YYYY-MM-DD.");
+                    return StatusCode(500, "Erro ao criar o paciente.");
                 }
                 
-                // Formatar a data no formato aceito pelo MySQL
-                patient.BirthDate = birthDate.ToString("yyyy-MM-dd");
+                var createdPatient = await _patientUseCase.GetPatientByIdAsync(createdPatientId);
                 
-                var success = await _patientUseCase.UpdatePatientAsync(patientid, patient);
-                
-                if (!success)
+                return CreatedAtAction(nameof(GetPatientByIdAsync), new { id = createdPatientId }, createdPatient);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro interno do Servidor: {ex.Message}");
+            }
+        }
+        
+        [HttpPut("update/{id}")]
+        public async Task<IActionResult> UpdatePatientAsync(int id, [FromBody] PatientInsertDTO patient)
+        {
+            try
+            {
+                if (patient == null || string.IsNullOrWhiteSpace(patient.PatientName))
                 {
-                    return NotFound($"Paciente com ID {patientid} não encontrado ou não foi possível atualizar.");
+                    return BadRequest("Os dados do paciente são inválidos.");
                 }
                 
-                var updatedPatient = await _patientUseCase.GetPatientByIdAsync(patientid);
+                var hasStatus = await _statusUseCase.GetStatusByIdAsync(patient.StatusId);
+                if (hasStatus == null)
+                    return BadRequest($"O status ID {patient.StatusId} não existe");
+
+                var updated = await _patientUseCase.UpdatePatientAsync(id, patient);
+                
+                if (!updated)
+                {
+                    return NotFound($"Paciente com ID {id} não encontrado ou não foi possível atualizar.");
+                }
+                
+                var updatedPatient = await _patientUseCase.GetPatientByIdAsync(id);
                 return Ok(updatedPatient);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
@@ -117,16 +132,37 @@ namespace ClinAgenda.src.WebAPI.Controllers
             }
         }
         
-        [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> DeletePatientAsync(int patientid)
+        [HttpPatch("toggle-active/{id}")]
+        public async Task<IActionResult> TogglePatientActiveAsync(int id, [FromQuery] bool active)
         {
             try
             {
-                var success = await _patientUseCase.DeletePatientAsync(patientid);
-                
-                if (!success)
+                var toggled = await _patientUseCase.TogglePatientActiveAsync(id, active);
+
+                if (!toggled)
                 {
-                    return NotFound($"Paciente com ID {patientid} não encontrado ou não foi possível excluir.");
+                    return NotFound($"Paciente com ID {id} não encontrado.");
+                }
+
+                var updatedPatient = await _patientUseCase.GetPatientByIdAsync(id);
+                return Ok(updatedPatient);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro ao alterar estado ativo do paciente: {ex.Message}");
+            }
+        }
+        
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> DeletePatientAsync(int id)
+        {
+            try
+            {
+                var deleted = await _patientUseCase.DeletePatientAsync(id);
+                
+                if (!deleted)
+                {
+                    return NotFound($"Paciente com ID {id} não encontrado ou não foi possível excluir.");
                 }
                 
                 return NoContent();

@@ -1,39 +1,54 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ClinAgenda.src.Application.DTOs.Patient;
 using ClinAgenda.src.Application.DTOs.Status;
 using ClinAgenda.src.Core.Interfaces;
-using ClinAgenda.src.Infrastructure.Repositories;
-using Dapper;
 
 namespace ClinAgenda.src.Application.PatientUseCase
 {
     public class PatientUseCase
     {
         private readonly IPatientRepository _patientRepository;
+        private readonly IStatusRepository _statusRepository;
 
-        public PatientUseCase(IPatientRepository patientRepository)
+        public PatientUseCase(IPatientRepository patientRepository, IStatusRepository statusRepository)
         {
             _patientRepository = patientRepository;
+            _statusRepository = statusRepository;
         }
 
-        public async Task<object> GetPatientsAsync
-            (
-                string? patientname, 
-                string? documentNumber, 
-                int? statusId, 
-                int itemsPerPage, 
-                int page
-            )
+        public async Task<object> GetPatientsAsync(
+            string? name, 
+            string? documentNumber, 
+            int? statusId,
+            bool? lActive,
+            int itemsPerPage, 
+            int page
+        )
         {
             var (total, rawData) = await _patientRepository.GetAllPatientAsync(
-                    patientname, 
-                    documentNumber, 
-                    statusId, 
-                    itemsPerPage, 
-                    page
-                );
+                name, 
+                documentNumber, 
+                statusId,
+                lActive,
+                itemsPerPage, 
+                page
+            );
+
+            // Obter informações de status para todos os pacientes
+            var statusIds = rawData.Select(p => p.StatusId).Distinct().ToList();
+            var statusList = new Dictionary<int, StatusDTO>();
+            
+            foreach (var id in statusIds)
+            {
+                var status = await _statusRepository.GetStatusByIdAsync(id);
+                if (status != null)
+                {
+                    statusList[id] = status;
+                }
+            }
 
             var patients = rawData
                 .Select(p => new PatientListReturnDTO
@@ -42,12 +57,21 @@ namespace ClinAgenda.src.Application.PatientUseCase
                     PatientName = p.PatientName,
                     PhoneNumber = p.PhoneNumber,
                     DocumentNumber = p.DocumentNumber,
-                    BirthDate = p.BirthDate,
-                    Status = new StatusDTO
-                    {
-                        StatusId = p.StatusId,
-                        StatusName = p.StatusName
-                    }
+                    DBirthDate = p.DBirthDate,
+                    Status = statusList.ContainsKey(p.StatusId) 
+                        ? statusList[p.StatusId]
+                        : new StatusDTO
+                        {
+                            StatusId = p.StatusId,
+                            StatusName = p.StatusName,
+                            StatusType = "patient",
+                            DCreated = p.DCreated,
+                            DLastUpdated = p.DLastUpdated,
+                            LActive = p.LActive
+                        },
+                    DCreated = p.DCreated,
+                    DLastUpdated = p.DLastUpdated,
+                    LActive = p.LActive
                 })
                 .ToList();
 
@@ -56,52 +80,77 @@ namespace ClinAgenda.src.Application.PatientUseCase
 
         public async Task<int> CreatePatientAsync(PatientInsertDTO patientDTO)
         {
+            // Validações básicas
+            if (string.IsNullOrWhiteSpace(patientDTO.PatientName))
+            {
+                throw new ArgumentException("O nome do paciente é obrigatório");
+            }
+
+            if (string.IsNullOrWhiteSpace(patientDTO.PhoneNumber))
+            {
+                throw new ArgumentException("O telefone do paciente é obrigatório");
+            }
+
+            if (string.IsNullOrWhiteSpace(patientDTO.DocumentNumber))
+            {
+                throw new ArgumentException("O documento do paciente é obrigatório");
+            }
+
+            if (string.IsNullOrWhiteSpace(patientDTO.DBirthDate))
+            {
+                throw new ArgumentException("A data de nascimento do paciente é obrigatória");
+            }
+
+            // Validar se a data é válida
+            if (!DateTime.TryParse(patientDTO.DBirthDate, out _))
+            {
+                throw new ArgumentException("Data de nascimento inválida. Use o formato YYYY-MM-DD");
+            }
+
             // Validar se o StatusId existe
-            var statusExists = await ValidateStatusExistsAsync(patientDTO.StatusId);
-            if (!statusExists)
+            var status = await _statusRepository.GetStatusByIdAsync(patientDTO.StatusId);
+            if (status == null)
             {
                 throw new ArgumentException($"Status com ID {patientDTO.StatusId} não existe.");
             }
             
             return await _patientRepository.InsertPatientAsync(patientDTO);
         }
-        
-        private async Task<bool> ValidateStatusExistsAsync(int statusId)
-        {
-            try
-            {
-                // Verificar se o status existe - isso depende de ter acesso ao repositório de Status
-                // Aqui você precisaria injetar IStatusRepository no construtor
-                // Como workaround, podemos fazer verificação direta no banco
-                var query = "SELECT COUNT(1) FROM status WHERE id = @StatusId";
-                var parameters = new { StatusId = statusId };
-                
-                // Usando o mesmo connection do repositório de pacientes
-                var connection = (_patientRepository as PatientRepository)?._connection;
-                if (connection != null)
-                {
-                    var count = await connection.ExecuteScalarAsync<int>(query, parameters);
-                    return count > 0;
-                }
-                
-                // Se não puder verificar diretamente, assume que existe
-                return true;
-            }
-            catch
-            {
-                // Em caso de erro, assume que existe para não bloquear a operação
-                return true;
-            }
-        }
 
         public async Task<PatientDTO> GetPatientByIdAsync(int id)
         {
             return await _patientRepository.GetPatientByIdAsync(id);
         }
-
         
         public async Task<bool> UpdatePatientAsync(int id, PatientInsertDTO patientDTO)
         {
+            // Validações básicas
+            if (string.IsNullOrWhiteSpace(patientDTO.PatientName))
+            {
+                throw new ArgumentException("O nome do paciente é obrigatório");
+            }
+
+            if (string.IsNullOrWhiteSpace(patientDTO.PhoneNumber))
+            {
+                throw new ArgumentException("O telefone do paciente é obrigatório");
+            }
+
+            if (string.IsNullOrWhiteSpace(patientDTO.DocumentNumber))
+            {
+                throw new ArgumentException("O documento do paciente é obrigatório");
+            }
+
+            if (string.IsNullOrWhiteSpace(patientDTO.DBirthDate))
+            {
+                throw new ArgumentException("A data de nascimento do paciente é obrigatória");
+            }
+
+            // Validar se a data é válida
+            if (!DateTime.TryParse(patientDTO.DBirthDate, out _))
+            {
+                throw new ArgumentException("Data de nascimento inválida. Use o formato YYYY-MM-DD");
+            }
+
             // Verificar se o paciente existe
             var existingPatient = await _patientRepository.GetPatientByIdAsync(id);
             if (existingPatient == null)
@@ -110,8 +159,8 @@ namespace ClinAgenda.src.Application.PatientUseCase
             }
             
             // Validar se o StatusId existe
-            var statusExists = await ValidateStatusExistsAsync(patientDTO.StatusId);
-            if (!statusExists)
+            var status = await _statusRepository.GetStatusByIdAsync(patientDTO.StatusId);
+            if (status == null)
             {
                 throw new ArgumentException($"Status com ID {patientDTO.StatusId} não existe.");
             }
@@ -120,8 +169,28 @@ namespace ClinAgenda.src.Application.PatientUseCase
             return rowsAffected > 0;
         }
         
+        public async Task<bool> TogglePatientActiveAsync(int id, bool active)
+        {
+            // Verificar se o paciente existe
+            var existingPatient = await _patientRepository.GetPatientByIdAsync(id);
+            if (existingPatient == null)
+            {
+                return false;
+            }
+            
+            var rowsAffected = await _patientRepository.TogglePatientActiveAsync(id, active);
+            return rowsAffected > 0;
+        }
+        
         public async Task<bool> DeletePatientAsync(int id)
         {
+            // Verificar se o paciente existe
+            var existingPatient = await _patientRepository.GetPatientByIdAsync(id);
+            if (existingPatient == null)
+            {
+                return false;
+            }
+            
             var rowsAffected = await _patientRepository.DeletePatientAsync(id);
             return rowsAffected > 0;
         }
