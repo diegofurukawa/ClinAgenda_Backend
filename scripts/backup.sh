@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Diretórios fixos
-SOURCE_DIR="$HOME/GitHub/ClinAgendaBootcamp"
-DEST_DIR="$HOME/GitHub/ClinAgendaBootcamp/backup"
+SOURCE_DIR="$HOME/GitHub/ClinAgenda"
+DEST_DIR="$HOME/GitHub/BKPs/ClinAgenda"
 
 
 # Verifica se o diretório fonte existe
