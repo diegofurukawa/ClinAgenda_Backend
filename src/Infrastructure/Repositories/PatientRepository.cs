@@ -22,17 +22,17 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         {
             string query = @"
                 SELECT 
-                    p.id AS PatientId,
+                    p.PatientId,
                     p.name AS PatientName,
                     p.phonenumber AS PhoneNumber,
                     p.documentnumber AS DocumentNumber,
                     p.birthdate AS DBirthDate,
                     p.statusid AS StatusId,
-                    p.d_created AS DCreated,
-                    p.d_last_updated AS DLastUpdated,
-                    p.l_active AS LActive
+                    p.DCreated AS DCreated,
+                    p.dlastupdated AS DLastUpdated,
+                    p.lActive AS LActive
                 FROM patient p
-                WHERE p.id = @Id";
+                WHERE p.PatientId = @PatientId";
 
             var parameters = new { Id = id };
             
@@ -76,11 +76,11 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             
             if (lActive.HasValue)
             {
-                queryBase.Append(" AND P.L_ACTIVE = @LActive");
+                queryBase.Append(" AND P.lActive = @LActive");
                 parameters.Add("LActive", lActive.Value);
             }
 
-            var countQuery = $"SELECT COUNT(DISTINCT P.ID) {queryBase}";
+            var countQuery = $"SELECT COUNT(DISTINCT P.PatientId) {queryBase}";
             int total = await _connection.ExecuteScalarAsync<int>(countQuery, parameters);
 
             var dataQuery = $@"
@@ -92,11 +92,11 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                         P.DBirthDate,
                         P.StatusId, 
                         S.StatusName,
-                        P.D_CREATED AS DCreated,
-                        P.D_LAST_UPDATED AS DLastUpdated,
-                        P.L_ACTIVE AS LActive
+                        P.DCreated AS DCreated,
+                        P.dlastupdated AS DLastUpdated,
+                        P.lActive AS LActive
                     {queryBase}
-                    ORDER BY P.ID
+                    ORDER BY P.PatientId
                     LIMIT @Limit OFFSET @Offset";
 
             parameters.Add("Limit", itemsPerPage);
@@ -136,8 +136,8 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                         documentnumber, 
                         birthdate, 
                         statusid, 
-                        d_created, 
-                        l_active
+                        DCreated, 
+                        lActive
                     ) 
                     VALUES (
                         @PatientName, 
@@ -182,9 +182,9 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                         documentnumber = @DocumentNumber, 
                         birthdate = @DBirthDate, 
                         statusid = @StatusId,
-                        d_last_updated = NOW(),
-                        l_active = @LActive
-                    WHERE id = @Id";
+                        dlastupdated = NOW(),
+                        lActive = @LActive
+                    WHERE id = @PatientId";
 
                 var parameters = new
                 {
@@ -214,7 +214,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         {
             string query = @"
                 DELETE FROM patient
-                WHERE id = @Id";
+                WHERE id = @PatientId";
 
             var parameters = new { Id = id };
             
@@ -226,9 +226,9 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             string query = @"
                 UPDATE patient 
                 SET 
-                    l_active = @Active,
-                    d_last_updated = NOW()
-                WHERE id = @Id";
+                    lActive = @Active,
+                    dlastupdated = NOW()
+                WHERE id = @PatientId";
 
             var parameters = new { Id = id, Active = active };
             

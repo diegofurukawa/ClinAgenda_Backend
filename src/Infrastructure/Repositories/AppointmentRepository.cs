@@ -29,9 +29,9 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                     STATUSID AS StatusId,
                     APPOINTMENTDATE AS DAppointmentDate,
                     OBSERVATION AS Observation,
-                    D_CREATED AS DCreated,
-                    D_LAST_UPDATED AS DLastUpdated,
-                    L_ACTIVE AS LActive
+                    DCreated AS DCreated,
+                    dlastupdated AS DLastUpdated,
+                    lActive AS LActive
                 FROM appointment
                 WHERE ID = @Id";
 
@@ -101,7 +101,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             
             if (lActive.HasValue)
             {
-                queryBase.Append(" AND A.L_ACTIVE = @LActive");
+                queryBase.Append(" AND A.lActive = @LActive");
                 parameters.Add("LActive", lActive.Value);
             }
 
@@ -121,9 +121,9 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                         S.StatusName,
                         A.APPOINTMENTDATE AS DAppointmentDate,
                         A.OBSERVATION AS Observation,
-                        A.D_CREATED AS DCreated,
-                        A.D_LAST_UPDATED AS DLastUpdated,
-                        A.L_ACTIVE AS LActive
+                        A.DCreated AS DCreated,
+                        A.dlastupdated AS DLastUpdated,
+                        A.lActive AS LActive
                     {queryBase}
                     ORDER BY A.APPOINTMENTDATE
                     LIMIT @Limit OFFSET @Offset";
@@ -146,8 +146,8 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                     STATUSID, 
                     APPOINTMENTDATE, 
                     OBSERVATION,
-                    D_CREATED,
-                    L_ACTIVE
+                    DCreated,
+                    lActive
                 ) 
                 VALUES (
                     @PatientId, 
@@ -175,8 +175,8 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                     STATUSID = @StatusId, 
                     APPOINTMENTDATE = @DAppointmentDate, 
                     OBSERVATION = @Observation,
-                    D_LAST_UPDATED = NOW(),
-                    L_ACTIVE = @LActive
+                    dlastupdated = NOW(),
+                    lActive = @LActive
                 WHERE ID = @Id";
 
             var parameters = new DynamicParameters(appointmentInsertDTO);
@@ -190,8 +190,8 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             string query = @"
                 UPDATE appointment 
                 SET 
-                    L_ACTIVE = @Active,
-                    D_LAST_UPDATED = NOW()
+                    lActive = @Active,
+                    dlastupdated = NOW()
                 WHERE ID = @Id";
 
             var parameters = new { Id = id, Active = active };
@@ -219,9 +219,9 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             var query = @"
                 SELECT COUNT(1) 
                 FROM appointment A
-                INNER JOIN specialty SP ON SP.ID = A.SPECIALTYID
+                INNER JOIN specialty SP ON SP.SPECIALTYID = A.SPECIALTYID
                 WHERE A.DOCTORID = @DoctorId
-                AND A.L_ACTIVE = 1
+                AND A.lActive = 1
                 AND (
                     (@StartTime BETWEEN A.APPOINTMENTDATE AND DATE_ADD(A.APPOINTMENTDATE, INTERVAL SP.SCHEDULEDURATION MINUTE))
                     OR

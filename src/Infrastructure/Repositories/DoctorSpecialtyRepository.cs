@@ -24,8 +24,8 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             INSERT INTO DOCTOR_SPECIALTY (
                 DoctorId, 
                 SpecialtyId, 
-                D_CREATED, 
-                L_ACTIVE
+                DCreated, 
+                lActive
             ) 
             VALUES (
                 @DoctorId, 
@@ -71,9 +71,9 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             SELECT 
                 DoctorId,
                 SpecialtyId,
-                D_CREATED AS DCreated,
-                D_LAST_UPDATED AS DLastUpdated,
-                L_ACTIVE AS LActive
+                DCreated AS DCreated,
+                dlastupdated AS DLastUpdated,
+                lActive AS LActive
             FROM doctor_specialty
             WHERE DoctorId = @DoctorId";
             
@@ -86,9 +86,9 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             SELECT 
                 DoctorId,
                 SpecialtyId,
-                D_CREATED AS DCreated,
-                D_LAST_UPDATED AS DLastUpdated,
-                L_ACTIVE AS LActive
+                DCreated AS DCreated,
+                dlastupdated AS DLastUpdated,
+                lActive AS LActive
             FROM doctor_specialty
             WHERE SpecialtyId = @SpecialtyId";
             
@@ -100,8 +100,8 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             string query = @"
             UPDATE doctor_specialty
             SET 
-                L_ACTIVE = @Active,
-                D_LAST_UPDATED = NOW()
+                lActive = @Active,
+                dlastupdated = NOW()
             WHERE DoctorId = @DoctorId AND SpecialtyId = @SpecialtyId";
             
             var parameters = new

@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Diretórios fixos
-SOURCE_DIR="$HOME/GitHub/ClinAgenda"
-DEST_DIR="$HOME/GitHub/BKPs/ClinAgenda"
+SOURCE_DIR="$HOME/GitHub/ClinAgenda/ClinAgenda_Backend"
+DEST_DIR="$HOME/GitHub/BKPs/ClinAgenda/ClinAgenda_Backend"
 
 
 # Verifica se o diretório fonte existe
@@ -16,7 +16,7 @@ mkdir -p "$DEST_DIR"
 
 # Cria o timestamp para o nome do backup
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-BACKUP_DIR="$DEST_DIR/backup_ClinAgenda_$TIMESTAMP"
+BACKUP_DIR="$DEST_DIR/$TIMESTAMP"
 
 # Cria o diretório de backup
 mkdir -p "$BACKUP_DIR"

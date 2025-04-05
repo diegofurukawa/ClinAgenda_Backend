@@ -27,10 +27,10 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             int pageSize)
         {
             var innerJoins = new StringBuilder(@"
-                FROM DOCTOR D
-                INNER JOIN STATUS S ON D.STATUSID = S.STATUSID
-                INNER JOIN DOCTOR_SPECIALTY DSPE ON DSPE.DOCTORID = D.DOCTORID
-                WHERE 1 = 1 ");
+                from doctor d
+                inner join status s on d.statusid = s.statusid
+                inner join doctor_specialty dspe on dspe.doctorid = d.doctorid
+                where 1 = 1 ");
 
             var parameters = new DynamicParameters();
 
@@ -54,7 +54,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             
             if (isActive.HasValue)
             {
-                innerJoins.Append(" AND D.L_ACTIVE = @IsActive");
+                innerJoins.Append(" AND D.lActive = @IsActive");
                 parameters.Add("IsActive", isActive.Value);
             }
 
@@ -63,15 +63,15 @@ namespace ClinAgenda.src.Infrastructure.Repositories
 
             var query = $@"
                 SELECT DISTINCT
-                    D.DOCTORID AS Id,
+                    D.DOCTORID,
                     D.DOCTORNAME AS Name,
                     S.StatusId,
                     S.StatusName,
-                    D.D_CREATED AS DCreated,
-                    D.D_LAST_UPDATED AS DLastUpdated,
-                    D.L_ACTIVE AS LActive
+                    D.DCreated AS DCreated,
+                    D.dlastupdated AS DLastUpdated,
+                    D.lActive AS LActive
                 {innerJoins}
-                ORDER BY D.ID
+                ORDER BY D.DOCTORID
                 LIMIT @Limit OFFSET @Offset";
 
             return await _connection.QueryAsync<DoctorListDTO>(query.ToString(), parameters);
@@ -81,16 +81,16 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         {
             var query = @"
                 SELECT 
-                    DS.DOCTORID AS DoctorId,
+                    DS.DoctorId,
                     SP.SpecialtyId,
                     SP.SpecialtyName,
                     SP.SCHEDULEDURATION AS NScheduleDuration,
-                    SP.D_CREATED AS DCreated,
-                    SP.D_LAST_UPDATED AS DLastUpdated,
-                    SP.L_ACTIVE AS LActive
-                FROM DOCTOR_SPECIALTY DS
-                INNER JOIN SPECIALTY SP ON DS.SPECIALTYID = SP.SPECIALTYID
-                WHERE DS.DOCTORID IN @DoctorIds";
+                    SP.DCreated,
+                    SP.DLastUpdated,
+                    SP.LActive
+                from doctor_specialty ds
+                inner join specialty sp on ds.specialtyid = sp.specialtyid
+                where ds.doctorid in @doctorids";
 
             var parameters = new { DoctorIds = doctorIds };
 
@@ -100,11 +100,11 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         public async Task<int> InsertDoctorAsync(DoctorInsertDTO doctor)
         {
             string query = @"
-            INSERT INTO Doctor (
-                NAME, 
-                STATUSID, 
-                D_CREATED, 
-                L_ACTIVE
+            insert into doctor (
+                name, 
+                statusid, 
+                dcreated, 
+                lactive
             ) 
             VALUES (
                 @DoctorName, 
@@ -131,12 +131,12 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 }
 
                 string specialtyQuery = @"
-                INSERT INTO DOCTOR_SPECIALTY (
-                    DOCTORID,
-                    SPECIALTYID,
-                    D_CREATED,
-                    L_ACTIVE
-                ) VALUES (
+                insert into doctor_specialty (
+                    doctorid,
+                    specialtyid,
+                    dcreated,
+                    lactive
+                ) values (
                     @DoctorId,
                     @SpecialtyId,
                     NOW(),
@@ -152,17 +152,17 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         public async Task<IEnumerable<DoctorListDTO>> GetDoctorByIdAsync(int id)
         {
             var queryBase = new StringBuilder(@"
-                    FROM DOCTOR D
-                LEFT JOIN DOCTOR_SPECIALTY DSPE ON D.DOCTORID = DSPE.DOCTORID
-                LEFT JOIN STATUS S ON S.statusid = D.STATUSID
-                LEFT JOIN SPECIALTY SP ON SP.ID = DSPE.SPECIALTYID
-                    WHERE 1 = 1");
+                    from doctor d
+                left join doctor_specialty dspe on d.doctorid = dspe.doctorid
+                left join status s on s.statusid = d.statusid
+                left join specialty sp on sp.specialtyid = dspe.specialtyid
+                    where 1 = 1");
 
             var parameters = new DynamicParameters();
 
             if (id > 0)
             {
-                queryBase.Append(" AND D.DOCTORID = @id");
+                queryBase.Append(" AND D.DOCTORID = @DoctorId");
                 parameters.Add("id", id);
             }
 
@@ -175,9 +175,9 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             DSPE.SpecialtyId,
             SP.NAME AS SpecialtyName,
             SP.SCHEDULEDURATION AS NScheduleDuration,
-            D.D_CREATED AS DCreated,
-            D.D_LAST_UPDATED AS DLastUpdated,
-            D.L_ACTIVE AS LActive
+            D.DCreated AS DCreated,
+            D.dlastupdated AS DLastUpdated,
+            D.lActive AS LActive
         {queryBase}
         ORDER BY D.DOCTORID";
 
@@ -190,12 +190,12 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         {
             // Atualizar dados básicos do médico
             string query = @"
-            UPDATE Doctor SET 
-                NAME = @DoctorName,
-                STATUSID = @StatusId,
-                D_LAST_UPDATED = NOW(),
-                L_ACTIVE = @LActive
-            WHERE ID = @Id";
+            update doctor set 
+                name = @doctorname,
+                statusid = @statusid,
+                dlastupdated = now(),
+                lactive = @LActive
+            WHERE ID = @DoctorId";
             
             var parameters = new DynamicParameters(doctor);
             parameters.Add("Id", id);
@@ -207,7 +207,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
 
             // Remover especialidades existentes
             await _connection.ExecuteAsync(
-                "DELETE FROM DOCTOR_SPECIALTY WHERE DOCTORID = @DoctorId", 
+                "delete from doctor_specialty where doctorid = @DoctorId", 
                 new { DoctorId = id });
 
             // Adicionar novas especialidades
@@ -225,12 +225,12 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 }
 
                 string specialtyQuery = @"
-                INSERT INTO DOCTOR_SPECIALTY (
-                    DOCTORID,
-                    SPECIALTYID,
-                    D_CREATED,
-                    L_ACTIVE
-                ) VALUES (
+                insert into doctor_specialty (
+                    doctorid,
+                    specialtyid,
+                    dcreated,
+                    lactive
+                ) values (
                     @DoctorId,
                     @SpecialtyId,
                     NOW(),
@@ -247,11 +247,11 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         {
             // Primeiro excluir as relações de especialidade
             await _connection.ExecuteAsync(
-                "DELETE FROM DOCTOR_SPECIALTY WHERE DOCTORID = @Id", 
+                "delete from doctor_specialty where doctorid = @DoctorId", 
                 new { Id = id });
                 
             // Então excluir o médico
-            string query = "DELETE FROM DOCTOR WHERE ID = @Id";
+            string query = "DELETE FROM DOCTOR WHERE ID = @DoctorId";
             var parameters = new { Id = id };
             return await _connection.ExecuteAsync(query, parameters);
         }
@@ -259,10 +259,10 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         public async Task<int> ToggleDoctorActiveAsync(int id, bool active)
         {
             string query = @"
-            UPDATE Doctor SET 
-                L_ACTIVE = @Active,
-                D_LAST_UPDATED = NOW()
-            WHERE ID = @Id";
+            UPDATE doctor SET 
+                lActive = @Active,
+                dlastupdated = NOW()
+            WHERE ID = @DoctorId";
 
             var parameters = new { Id = id, Active = active };
             return await _connection.ExecuteAsync(query, parameters);

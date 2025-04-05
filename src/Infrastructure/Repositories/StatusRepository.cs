@@ -55,8 +55,8 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         {
             string query = @"
             INSERT INTO status (
-                StatusName, 
-                StatusType, 
+                statusName, 
+                statusType, 
                 dCreated, 
                 lActive
             ) 
@@ -124,9 +124,9 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             SET 
                 NAME = @StatusName, 
                 StatusType = @StatusType, 
-                D_LAST_UPDATED = NOW(), 
+                dlastupdated = NOW(), 
                 LActive = @LActive
-            WHERE ID = @StatusId";
+            WHERE StatusId = @StatusId";
 
             var parameters = new DynamicParameters(statusInsertDTO);
             parameters.Add("Id", id);
@@ -141,8 +141,8 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             UPDATE status 
             SET 
                 LActive = @Active,
-                D_LAST_UPDATED = NOW()
-            WHERE ID = @StatusId";
+                dlastupdated = NOW()
+            WHERE StatusId = @StatusId";
 
             var parameters = new { Id = id, Active = active };
 
