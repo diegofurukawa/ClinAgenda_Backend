@@ -15,7 +15,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             _connection = connection;
         }
 
-        public async Task<User?> GetUserByIdAsync(int id)
+        public async Task<User?> GetUserByIdAsync(int userId)
         {
             string query = @"
                 SELECT 
@@ -29,9 +29,9 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                     dLastUpdated, 
                     lActive
                 FROM user
-                WHERE userId = @Id";
+                WHERE userId = @userId";
 
-            return await _connection.QueryFirstOrDefaultAsync<User>(query, new { Id = id });
+            return await _connection.QueryFirstOrDefaultAsync<User>(query, new { userId = userId });
         }
 
         public async Task<User?> GetUserByUsernameAsync(string username)
@@ -111,10 +111,10 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             return rowsAffected > 0;
         }
 
-        public async Task<bool> DeleteUserAsync(int id)
+        public async Task<bool> DeleteUserAsync(int userId)
         {
             string query = "DELETE FROM user WHERE userId = @Id";
-            var rowsAffected = await _connection.ExecuteAsync(query, new { Id = id });
+            var rowsAffected = await _connection.ExecuteAsync(query, new { userId = userId });
             return rowsAffected > 0;
         }
 

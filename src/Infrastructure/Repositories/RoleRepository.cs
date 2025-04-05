@@ -16,7 +16,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             _connection = connection;
         }
 
-        public async Task<Role?> GetRoleByIdAsync(int id)
+        public async Task<Role?> GetRoleByIdAsync(int roleid)
         {
             string query = @"
                 SELECT 
@@ -27,9 +27,9 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                     dLastUpdated, 
                     lActive
                 FROM role
-                WHERE roleId = @Id";
+                WHERE roleId = @roleId";
 
-            return await _connection.QueryFirstOrDefaultAsync<Role>(query, new { Id = id });
+            return await _connection.QueryFirstOrDefaultAsync<Role>(query, new { roleId = roleid });
         }
 
         public async Task<Role?> GetRoleByNameAsync(string name)
@@ -98,10 +98,10 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             return rowsAffected > 0;
         }
 
-        public async Task<bool> DeleteRoleAsync(int id)
+        public async Task<bool> DeleteRoleAsync(int roleid)
         {
             string query = "DELETE FROM role WHERE roleId = @Id";
-            var rowsAffected = await _connection.ExecuteAsync(query, new { Id = id });
+            var rowsAffected = await _connection.ExecuteAsync(query, new { roleId = roleid });
             return rowsAffected > 0;
         }
     }

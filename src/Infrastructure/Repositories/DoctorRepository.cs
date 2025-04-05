@@ -101,7 +101,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         {
             string query = @"
             insert into doctor (
-                name, 
+                doctorname, 
                 statusid, 
                 dcreated, 
                 lactive
@@ -149,7 +149,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             return newDoctorId;
         }
         
-        public async Task<IEnumerable<DoctorListDTO>> GetDoctorByIdAsync(int id)
+        public async Task<IEnumerable<DoctorListDTO>> GetDoctorByIdAsync(int doctorid)
         {
             var queryBase = new StringBuilder(@"
                     from doctor d
@@ -160,10 +160,10 @@ namespace ClinAgenda.src.Infrastructure.Repositories
 
             var parameters = new DynamicParameters();
 
-            if (id > 0)
+            if (doctorid > 0)
             {
                 queryBase.Append(" AND D.DOCTORID = @DoctorId");
-                parameters.Add("id", id);
+                parameters.Add("DoctorId", doctorid);
             }
 
             var dataQuery = $@"
@@ -186,19 +186,19 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             return doctors;
         }
         
-        public async Task<bool> UpdateDoctorAsync(int id, DoctorInsertDTO doctor)
+        public async Task<bool> UpdateDoctorAsync(int doctorid, DoctorInsertDTO doctor)
         {
             // Atualizar dados básicos do médico
             string query = @"
             update doctor set 
-                name = @doctorname,
+                doctorname = @doctorname,
                 statusid = @statusid,
                 dlastupdated = now(),
                 lactive = @LActive
             WHERE ID = @DoctorId";
             
             var parameters = new DynamicParameters(doctor);
-            parameters.Add("Id", id);
+            parameters.Add("DoctorId", doctorid);
             
             int rowsAffected = await _connection.ExecuteAsync(query, parameters);
             
@@ -208,7 +208,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             // Remover especialidades existentes
             await _connection.ExecuteAsync(
                 "delete from doctor_specialty where doctorid = @DoctorId", 
-                new { DoctorId = id });
+                new { DoctorId = doctorid });
 
             // Adicionar novas especialidades
             if (doctor.Specialty != null && doctor.Specialty.Count > 0)
@@ -218,7 +218,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 {
                     specialtyInserts.Add(new
                     {
-                        DoctorId = id,
+                        DoctorId = doctorid,
                         SpecialtyId = specialtyId,
                         LActive = true
                     });
@@ -243,20 +243,20 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             return true;
         }
         
-        public async Task<int> DeleteDoctorByIdAsync(int id)
+        public async Task<int> DeleteDoctorByIdAsync(int doctorid)
         {
             // Primeiro excluir as relações de especialidade
             await _connection.ExecuteAsync(
                 "delete from doctor_specialty where doctorid = @DoctorId", 
-                new { Id = id });
+                new { DoctorId = doctorid });
                 
             // Então excluir o médico
             string query = "DELETE FROM DOCTOR WHERE ID = @DoctorId";
-            var parameters = new { Id = id };
+            var parameters = new { DoctorId = doctorid };
             return await _connection.ExecuteAsync(query, parameters);
         }
         
-        public async Task<int> ToggleDoctorActiveAsync(int id, bool active)
+        public async Task<int> ToggleDoctorActiveAsync(int doctorid, bool active)
         {
             string query = @"
             UPDATE doctor SET 
@@ -264,7 +264,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 dlastupdated = NOW()
             WHERE ID = @DoctorId";
 
-            var parameters = new { Id = id, Active = active };
+            var parameters = new { DoctorId = doctorid, Active = active };
             return await _connection.ExecuteAsync(query, parameters);
         }
     }

@@ -18,11 +18,11 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             _connection = connection;
         }
         
-        public async Task<AppointmentDTO> GetAppointmentByIdAsync(int id)
+        public async Task<AppointmentDTO> GetAppointmentByIdAsync(int appointmentId)
         {
             string query = @"
                 SELECT 
-                    ID AS AppointmentId,
+                    AppointmentId,
                     PATIENTID AS PatientId,
                     DOCTORID AS DoctorId,
                     SPECIALTYID AS SpecialtyId,
@@ -35,7 +35,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 FROM appointment
                 WHERE ID = @Id";
 
-            var parameters = new { Id = id };
+            var parameters = new { AppointmentId = appointmentId };
             
             var appointment = await _connection.QueryFirstOrDefaultAsync<AppointmentDTO>(query, parameters);
             
@@ -89,13 +89,13 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             
             if (startDate.HasValue)
             {
-                queryBase.Append(" AND A.APPOINTMENTDATE >= @StartDate");
+                queryBase.Append(" AND A.dAppointmentDate >= @StartDate");
                 parameters.Add("StartDate", startDate.Value);
             }
             
             if (endDate.HasValue)
             {
-                queryBase.Append(" AND A.APPOINTMENTDATE <= @EndDate");
+                queryBase.Append(" AND A.dAppointmentDate <= @EndDate");
                 parameters.Add("EndDate", endDate.Value);
             }
             
@@ -105,7 +105,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 parameters.Add("LActive", lActive.Value);
             }
 
-            var countQuery = $"SELECT COUNT(DISTINCT A.ID) {queryBase}";
+            var countQuery = $"SELECT COUNT(DISTINCT A.AppointmentId) {queryBase}";
             int total = await _connection.ExecuteScalarAsync<int>(countQuery, parameters);
 
             var dataQuery = $@"
@@ -115,17 +115,17 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                         P.PatientName,
                         D.DoctorId,
                         D.DoctorName,
-                        SP.ID AS SpecialtyId,
+                        SP.SpecialtyId,
                         SP.SpecialtyName,
                         S.StatusId,
                         S.StatusName,
-                        A.APPOINTMENTDATE AS DAppointmentDate,
+                        A.dAppointmentDate,
                         A.OBSERVATION AS Observation,
                         A.DCreated AS DCreated,
                         A.dlastupdated AS DLastUpdated,
                         A.lActive AS LActive
                     {queryBase}
-                    ORDER BY A.APPOINTMENTDATE
+                    ORDER BY A.dAppointmentDate
                     LIMIT @Limit OFFSET @Offset";
 
             parameters.Add("Limit", itemsPerPage);
@@ -164,7 +164,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             return await _connection.ExecuteScalarAsync<int>(query, appointmentInsertDTO);
         }
         
-        public async Task<int> UpdateAppointmentAsync(int id, AppointmentInsertDTO appointmentInsertDTO)
+        public async Task<int> UpdateAppointmentAsync(int appointmentId, AppointmentInsertDTO appointmentInsertDTO)
         {
             string query = @"
                 UPDATE appointment 
@@ -177,35 +177,35 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                     OBSERVATION = @Observation,
                     dlastupdated = NOW(),
                     lActive = @LActive
-                WHERE ID = @Id";
+                WHERE AppointmentId = @AppointmentId";
 
             var parameters = new DynamicParameters(appointmentInsertDTO);
-            parameters.Add("Id", id);
+            parameters.Add("AppointmentId", appointmentId);
             
             return await _connection.ExecuteAsync(query, parameters);
         }
         
-        public async Task<int> ToggleAppointmentActiveAsync(int id, bool active)
+        public async Task<int> ToggleAppointmentActiveAsync(int appointmentId, bool active)
         {
             string query = @"
                 UPDATE appointment 
                 SET 
                     lActive = @Active,
                     dlastupdated = NOW()
-                WHERE ID = @Id";
+                WHERE AppointmentId = @AppointmentId";
 
-            var parameters = new { Id = id, Active = active };
+            var parameters = new { AppointmentId = appointmentId, Active = active };
             
             return await _connection.ExecuteAsync(query, parameters);
         }
         
-        public async Task<int> DeleteAppointmentAsync(int id)
+        public async Task<int> DeleteAppointmentAsync(int appointmentId)
         {
             string query = @"
                 DELETE FROM appointment
-                WHERE ID = @Id";
+                WHERE AppointmentId = @AppointmentId";
 
-            var parameters = new { Id = id };
+            var parameters = new { AppointmentId = appointmentId };
             
             return await _connection.ExecuteAsync(query, parameters);
         }
@@ -223,11 +223,11 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 WHERE A.DOCTORID = @DoctorId
                 AND A.lActive = 1
                 AND (
-                    (@StartTime BETWEEN A.APPOINTMENTDATE AND DATE_ADD(A.APPOINTMENTDATE, INTERVAL SP.SCHEDULEDURATION MINUTE))
+                    (@StartTime BETWEEN A.dAppointmentDate AND DATE_ADD(A.dAppointmentDate, INTERVAL SP.SCHEDULEDURATION MINUTE))
                     OR
-                    (@EndTime BETWEEN A.APPOINTMENTDATE AND DATE_ADD(A.APPOINTMENTDATE, INTERVAL SP.SCHEDULEDURATION MINUTE))
+                    (@EndTime BETWEEN A.dAppointmentDate AND DATE_ADD(A.dAppointmentDate, INTERVAL SP.SCHEDULEDURATION MINUTE))
                     OR
-                    (A.APPOINTMENTDATE BETWEEN @StartTime AND @EndTime)
+                    (A.dAppointmentDate BETWEEN @StartTime AND @EndTime)
                 )";
                 
             var parameters = new DynamicParameters();
@@ -238,7 +238,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             // Se estivermos atualizando um agendamento existente, excluímos ele da verificação
             if (appointmentId.HasValue)
             {
-                query += " AND A.ID != @AppointmentId";
+                query += " AND A.AppointmentId != @AppointmentId";
                 parameters.Add("AppointmentId", appointmentId.Value);
             }
             

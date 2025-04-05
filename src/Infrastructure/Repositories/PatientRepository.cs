@@ -18,7 +18,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             _connection = connection;
         }
 
-        public async Task<PatientDTO> GetPatientByIdAsync(int id)
+        public async Task<PatientDTO> GetPatientByIdAsync(int patientId)
         {
             string query = @"
                 SELECT 
@@ -34,7 +34,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 FROM patient p
                 WHERE p.PatientId = @PatientId";
 
-            var parameters = new { Id = id };
+            var parameters = new { PatientId = patientId };
             
             var patient = await _connection.QueryFirstOrDefaultAsync<PatientDTO>(query, parameters);
             
@@ -131,12 +131,12 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 
                 string query = @"
                     INSERT INTO patient (
-                        name, 
+                        patientname, 
                         phonenumber, 
                         documentnumber, 
                         birthdate, 
                         statusid, 
-                        DCreated, 
+                        dCreated, 
                         lActive
                     ) 
                     VALUES (
@@ -163,7 +163,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             }
         }
 
-        public async Task<int> UpdatePatientAsync(int id, PatientInsertDTO patientInsertDTO)
+        public async Task<int> UpdatePatientAsync(int patientId, PatientInsertDTO patientInsertDTO)
         {
             try
             {
@@ -177,7 +177,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 string query = @"
                     UPDATE patient 
                     SET 
-                        name = @PatientName, 
+                        patientname = @PatientName, 
                         phonenumber = @PhoneNumber, 
                         documentnumber = @DocumentNumber, 
                         birthdate = @DBirthDate, 
@@ -188,7 +188,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
 
                 var parameters = new
                 {
-                    Id = id,
+                    PatientId = patientId,
                     patientInsertDTO.PatientName,
                     patientInsertDTO.PhoneNumber,
                     patientInsertDTO.DocumentNumber,
@@ -210,27 +210,27 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             }
         }
 
-        public async Task<int> DeletePatientAsync(int id)
+        public async Task<int> DeletePatientAsync(int patientId)
         {
             string query = @"
                 DELETE FROM patient
-                WHERE id = @PatientId";
+                WHERE PatientId = @PatientId";
 
-            var parameters = new { Id = id };
+            var parameters = new { PatientId = patientId };
             
             return await _connection.ExecuteAsync(query, parameters);
         }
         
-        public async Task<int> TogglePatientActiveAsync(int id, bool active)
+        public async Task<int> TogglePatientActiveAsync(int patientId, bool active)
         {
             string query = @"
                 UPDATE patient 
                 SET 
                     lActive = @Active,
                     dlastupdated = NOW()
-                WHERE id = @PatientId";
+                WHERE PatientId = @PatientId";
 
-            var parameters = new { Id = id, Active = active };
+            var parameters = new { PatientId = patientId, Active = active };
             
             return await _connection.ExecuteAsync(query, parameters);
         }

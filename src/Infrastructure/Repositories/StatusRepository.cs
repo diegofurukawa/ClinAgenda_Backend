@@ -6,6 +6,7 @@ using MySql.Data.MySqlClient;
 using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
+using System.Data;
 
 namespace ClinAgenda.src.Infrastructure.Repositories
 {
@@ -18,7 +19,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             _connection = connection;
         }
 
-        public async Task<StatusDTO> GetStatusByIdAsync(int id)
+        public async Task<StatusDTO> GetStatusByIdAsync(int statusId)
         {
             string query = @"
             SELECT 
@@ -31,20 +32,20 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             FROM status
             WHERE StatusId = @StatusId";
 
-            var parameters = new { Id = id };
+            var parameters = new { StatusId = statusId };
 
             var status = await _connection.QueryFirstOrDefaultAsync<StatusDTO>(query, parameters);
 
             return status;
         }
 
-        public async Task<int> DeleteStatusAsync(int id)
+        public async Task<int> DeleteStatusAsync(int statusId)
         {
             string query = @"
             DELETE FROM status
             WHERE StatusId = @StatusId";
 
-            var parameters = new { Id = id };
+            var parameters = new { StatusId = statusId };
 
             var rowsAffected = await _connection.ExecuteAsync(query, parameters);
 
@@ -53,22 +54,37 @@ namespace ClinAgenda.src.Infrastructure.Repositories
 
         public async Task<int> InsertStatusAsync(StatusInsertDTO statusInsertDTO)
         {
-            string query = @"
-            INSERT INTO status (
-                statusName, 
-                statusType, 
-                dCreated, 
-                lActive
-            ) 
-            VALUES (
-                @StatusName, 
-                @StatusType, 
-                NOW(),
-                @lActive
-            );
-            SELECT LAST_INSERT_ID();";
+            try
+            {
+                _connection.Open(); // Garantir que a conexão está aberta
+                
+                string query = @"
+                INSERT INTO status (
+                    statusName, 
+                    statusType, 
+                    dCreated, 
+                    lActive
+                ) 
+                VALUES (
+                    @StatusName, 
+                    @StatusType, 
+                    NOW(),
+                    @lActive
+                );
+                SELECT LAST_INSERT_ID();";
 
-            return await _connection.ExecuteScalarAsync<int>(query, statusInsertDTO);
+                return await _connection.ExecuteScalarAsync<int>(query, statusInsertDTO);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao inserir status: {ex.Message}");
+                throw;
+            }
+            finally
+            {
+                if (_connection.State == ConnectionState.Open)
+                    _connection.Close();
+            }
         }
 
         public async Task<(int total, IEnumerable<StatusDTO> statuses)> GetAllStatusAsync(
@@ -117,25 +133,25 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             return (total, status);
         }
 
-        public async Task<int> UpdateStatusAsync(int id, StatusInsertDTO statusInsertDTO)
+        public async Task<int> UpdateStatusAsync(int statusId, StatusInsertDTO statusInsertDTO)
         {
             string query = @"
             UPDATE status 
             SET 
-                NAME = @StatusName, 
+                StatusName = @StatusName, 
                 StatusType = @StatusType, 
                 dlastupdated = NOW(), 
                 LActive = @LActive
             WHERE StatusId = @StatusId";
 
             var parameters = new DynamicParameters(statusInsertDTO);
-            parameters.Add("Id", id);
+            parameters.Add("StatusId", statusId);
 
             return await _connection.ExecuteAsync(query, parameters);
         }
 
         // Implementação correta do método ToggleStatusActiveAsync
-        public async Task<int> ToggleStatusActiveAsync(int id, bool active)
+        public async Task<int> ToggleStatusActiveAsync(int statusId, bool active)
         {
             string query = @"
             UPDATE status 
@@ -144,7 +160,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 dlastupdated = NOW()
             WHERE StatusId = @StatusId";
 
-            var parameters = new { Id = id, Active = active };
+            var parameters = new { StatusId = statusId, Active = active };
 
             return await _connection.ExecuteAsync(query, parameters);
         }

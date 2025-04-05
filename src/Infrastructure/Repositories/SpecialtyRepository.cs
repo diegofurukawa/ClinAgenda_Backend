@@ -19,7 +19,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             _connection = connection;
         }
 
-        public async Task<SpecialtyDTO> GetSpecialtyByIdAsync(int id)
+        public async Task<SpecialtyDTO> GetSpecialtyByIdAsync(int SpecialtyId)
         {
             string query = @"
                 SELECT 
@@ -32,7 +32,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 FROM specialty
                 WHERE SpecialtyId = @SpecialtyId";
 
-            var parameters = new { Id = id };
+            var parameters = new { SpecialtyId = SpecialtyId };
             
             var specialty = await _connection.QueryFirstOrDefaultAsync<SpecialtyDTO>(query, parameters);
 
@@ -90,7 +90,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             string query = @"
             INSERT INTO specialty (
                 SpecialtyName, 
-                NScheduleDuration,
+                nScheduleDuration,
                 dCREATED, 
                 lActive
             ) 
@@ -105,7 +105,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             return await _connection.ExecuteScalarAsync<int>(query, specialtyInsertDTO);
         }
 
-        public async Task<int> UpdateSpecialtyAsync(int id, SpecialtyInsertDTO specialtyInsertDTO)
+        public async Task<int> UpdateSpecialtyAsync(int SpecialtyId, SpecialtyInsertDTO specialtyInsertDTO)
         {
             string query = @"
             UPDATE specialty 
@@ -117,12 +117,12 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             WHERE ID = @SpecialtyId";
 
             var parameters = new DynamicParameters(specialtyInsertDTO);
-            parameters.Add("Id", id);
+            parameters.Add("SpecialtyId", SpecialtyId);
 
             return await _connection.ExecuteAsync(query, parameters);
         }
 
-        public async Task<int> ToggleSpecialtyActiveAsync(int id, bool active)
+        public async Task<int> ToggleSpecialtyActiveAsync(int specialtyId, bool active)
         {
             string query = @"
             UPDATE specialty 
@@ -131,16 +131,16 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 dLastUpdated = NOW()
             WHERE SpecialtyId = @SpecialtyId";
 
-            var parameters = new { Id = id, Active = active };
+            var parameters = new { SpecialtyId = specialtyId, Active = active };
 
             return await _connection.ExecuteAsync(query, parameters);
         }
 
-        public async Task<int> DeleteSpecialtyAsync(int id)
+        public async Task<int> DeleteSpecialtyAsync(int specialtyId)
         {
             string query = "DELETE FROM specialty WHERE SpecialtyId = @SpecialtyId";
 
-            var parameters = new { Id = id };
+            var parameters = new { SpecialtyId = specialtyId };
 
             var rowsAffected = await _connection.ExecuteAsync(query, parameters);
 
