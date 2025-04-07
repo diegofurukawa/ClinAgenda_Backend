@@ -140,9 +140,30 @@ namespace ClinAgenda.src.Application.StatusUseCase
         }
         
         // Método para obter todos os tipos de status válidos
-        public IEnumerable<string> GetValidStatusTypes()
+        public object GetValidStatusTypes()
         {
-            return new List<string> { "patient", "specialty", "doctor", "appointment" };
+            // Criamos um dicionário que mapeia tipo de status para seu nome em português
+            var statusTypeNames = new Dictionary<string, string>
+            {
+                { "patient", "PACIENTE" },
+                { "specialty", "ESPECIALIDADE" },
+                { "doctor", "MEDICO" },
+                { "appointment", "AGENDAMENTO" }
+            };
+            
+            // Criamos uma lista de objetos anônimos com as propriedades desejadas
+            var items = statusTypeNames.Select(kvp => new 
+            { 
+                statusType = kvp.Key, 
+                statusTypeName = kvp.Value 
+            }).ToList();
+            
+            // Retornamos o objeto com a estrutura desejada
+            return new
+            {
+                total = items.Count,
+                items = items
+            };
         }
     }
 }

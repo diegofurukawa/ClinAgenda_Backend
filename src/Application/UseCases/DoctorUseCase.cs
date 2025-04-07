@@ -53,7 +53,7 @@ namespace ClinAgenda.src.Application.DoctorUseCase
                     Items = new List<DoctorListItemDTO>() 
                 };
 
-            var doctorIds = doctors.Select(d => d.Id).ToArray();
+            var doctorIds = doctors.Select(d => d.DoctorId).ToArray();
             var specialties = (await _doctorRepository.GetDoctorSpecialtyAsync(doctorIds)).ToList();
 
             // Obter informações de status para todos os médicos
@@ -72,16 +72,16 @@ namespace ClinAgenda.src.Application.DoctorUseCase
             // Transformar o resultado em DTOs de listagem
             var doctorListItems = doctors.Select(d => new DoctorListItemDTO
             {
-                Id = d.Id,
-                Name = d.Name,
+                DoctorId = d.DoctorId,
+                DoctorName = d.DoctorName,
                 StatusName = statusList.ContainsKey(d.StatusId) 
                     ? statusList[d.StatusId].StatusName
                     : "Desconhecido",
                 SpecialtyNames = specialties
-                    .Where(s => s.DoctorId == d.Id)
+                    .Where(s => s.DoctorId == d.DoctorId)
                     .Select(s => s.SpecialtyName)
                     .ToList(),
-                IsActive = d.LActive
+                lActive = d.lActive
             }).ToList();
 
             return new DoctorPagedResultDTO
@@ -115,10 +115,10 @@ namespace ClinAgenda.src.Application.DoctorUseCase
             // Mapear para o DTO que o repositório espera (adaptação para evitar alterações no repositório)
             var repositoryDto = new DoctorInsertDTO
             {
-                DoctorName = doctorDto.Name,
+                DoctorName = doctorDto.DoctorName,
                 StatusId = doctorDto.StatusId,
                 Specialty = doctorDto.SpecialtyIds,
-                LActive = doctorDto.IsActive
+                lActive = doctorDto.IsActive
             };
             
             var newDoctorId = await _doctorRepository.InsertDoctorAsync(repositoryDto);
@@ -144,7 +144,7 @@ namespace ClinAgenda.src.Application.DoctorUseCase
                 StatusId = statusId, 
                 StatusName = statusInfo?.StatusName ?? rawData.First().StatusName, 
                 StatusType = statusInfo?.StatusType ?? "doctor",
-                lActive = statusInfo?.LActive ?? rawData.First().LActive
+                lActive = statusInfo?.LActive ?? rawData.First().lActive
             };
 
             var doctorData = rawData.First();
@@ -159,21 +159,21 @@ namespace ClinAgenda.src.Application.DoctorUseCase
                 {
                     SpecialtyId = s.SpecialtyId,
                     SpecialtyName = s.SpecialtyName,
-                    ScheduleDuration = s.NScheduleDuration,
+                    ScheduleDuration = s.nScheduleDuration,
                     IsActive = doctorSpecialties
-                        .FirstOrDefault(ds => ds.SpecialtyId == s.SpecialtyId)?.LActive ?? true
+                        .FirstOrDefault(ds => ds.SpecialtyId == s.SpecialtyId)?.lActive ?? true
                 })
                 .ToList();
 
             return new DoctorDetailDTO
             {
-                Id = doctorData.Id,
-                Name = doctorData.Name,
+                DoctorId = doctorData.DoctorId,
+                DoctorName = doctorData.DoctorName,
                 Status = statusDto,
                 Specialties = specialties,
-                CreatedAt = doctorData.DCreated,
-                LastUpdatedAt = doctorData.DLastUpdated,
-                IsActive = doctorData.LActive
+                dCreated = doctorData.dCreated,
+                dLastUpdated = doctorData.dLastUpdated,
+                lActive = doctorData.lActive
             };
         }
 
@@ -208,10 +208,10 @@ namespace ClinAgenda.src.Application.DoctorUseCase
             // Mapear para o DTO que o repositório espera (adaptação para manter compatibilidade)
             var repositoryUpdateDto = new DoctorInsertDTO
             {
-                DoctorName = doctorDto.Name,
+                DoctorName = doctorDto.DoctorName,
                 StatusId = doctorDto.StatusId,
                 Specialty = doctorDto.SpecialtyIds,
-                LActive = doctorData.First().LActive // Mantém o estado ativo atual
+                lActive = doctorData.First().lActive // Mantém o estado ativo atual
             };
 
             // Atualizar o médico

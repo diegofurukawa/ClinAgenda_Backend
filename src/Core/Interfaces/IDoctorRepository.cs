@@ -11,10 +11,10 @@ namespace ClinAgenda.src.Core.Interfaces
         /// Obtém uma lista paginada de médicos com filtros opcionais
         /// </summary>
         Task<IEnumerable<DoctorListDTO>> GetDoctorsAsync(
-            string? name, 
+            string? DoctorName, 
             int? specialtyId, 
             int? statusId, 
-            bool? isActive,
+            bool? lActive,
             int offset, 
             int pageSize);
             

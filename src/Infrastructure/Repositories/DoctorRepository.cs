@@ -62,16 +62,16 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             parameters.Add("Offset", offset);
 
             var query = $@"
-                SELECT DISTINCT
-                    D.DOCTORID,
-                    D.DOCTORNAME AS Name,
-                    S.StatusId,
-                    S.StatusName,
-                    D.DCreated AS DCreated,
-                    D.dlastupdated AS DLastUpdated,
-                    D.lActive AS LActive
+                select distinct
+                    d.doctorid,
+                    d.doctorname,
+                    s.statusid,
+                    s.statusname,
+                    d.dcreated as dcreated,
+                    d.dlastupdated as dlastupdated,
+                    d.lactive as lactive
                 {innerJoins}
-                ORDER BY D.DOCTORID
+                ORDER BY D.doctorid
                 LIMIT @Limit OFFSET @Offset";
 
             return await _connection.QueryAsync<DoctorListDTO>(query.ToString(), parameters);
@@ -81,7 +81,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         {
             var query = @"
                 SELECT 
-                    DS.DoctorId,
+                    DS.doctorid,
                     SP.SpecialtyId,
                     SP.SpecialtyName,
                     SP.SCHEDULEDURATION AS NScheduleDuration,
@@ -167,19 +167,19 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             }
 
             var dataQuery = $@"
-        SELECT DISTINCT
-            D.DOCTORID, 
-            D.DOCTORNAME, 
-            D.StatusId, 
-            S.StatusName,
-            DSPE.SpecialtyId,
-            SP.NAME AS SpecialtyName,
-            SP.SCHEDULEDURATION AS NScheduleDuration,
-            D.DCreated AS DCreated,
-            D.dlastupdated AS DLastUpdated,
-            D.lActive AS LActive
+        select distinct
+            d.doctorid, 
+            d.doctorname, 
+            d.statusid, 
+            s.statusname,
+            dspe.specialtyid,
+            sp.name as specialtyname,
+            sp.scheduleduration as nscheduleduration,
+            d.dcreated as dcreated,
+            d.dlastupdated as dlastupdated,
+            d.lactive as lactive
         {queryBase}
-        ORDER BY D.DOCTORID";
+        ORDER BY d.doctorid";
 
             var doctors = await _connection.QueryAsync<DoctorListDTO>(dataQuery, parameters);
 

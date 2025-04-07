@@ -12,7 +12,7 @@ namespace ClinAgenda.src.Application.DTOs.Doctor
     {
         [Required(ErrorMessage = "O nome do médico é obrigatório")]
         [StringLength(255, MinimumLength = 3, ErrorMessage = "O nome deve ter entre 3 e 255 caracteres")]
-        public required string Name { get; set; }
+        public required string DoctorName { get; set; }
         
         [Required(ErrorMessage = "O status é obrigatório")]
         public int StatusId { get; set; }

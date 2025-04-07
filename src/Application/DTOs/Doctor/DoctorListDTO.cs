@@ -10,15 +10,15 @@ namespace ClinAgenda.src.Application.DTOs.Doctor
     /// </summary>
     public class DoctorListDTO
     {
-        public int Id { get; set; }
-        public required string Name { get; set; }
+        public int DoctorId { get; set; }
+        public required string DoctorName { get; set; }
         public required int StatusId { get; set; }
         public required string StatusName { get; set; }
         public int SpecialtyId { get; set; }
         public required string SpecialtyName { get; set; }
-        public int NScheduleDuration { get; set; }
-        public DateTime DCreated { get; set; }
-        public DateTime? DLastUpdated { get; set; }
-        public bool LActive { get; set; }
+        public int nScheduleDuration { get; set; }
+        public DateTime dCreated { get; set; }
+        public DateTime? dLastUpdated { get; set; }
+        public bool lActive { get; set; }
     }
 }

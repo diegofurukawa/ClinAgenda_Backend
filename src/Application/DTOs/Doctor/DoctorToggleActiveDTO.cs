@@ -10,6 +10,6 @@ namespace ClinAgenda.src.Application.DTOs.Doctor
     public class DoctorToggleActiveDTO
     {
         [Required(ErrorMessage = "O estado ativo é obrigatório")]
-        public required bool IsActive { get; set; }
+        public required bool lActive { get; set; }
     }
 }

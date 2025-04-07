@@ -91,8 +91,8 @@ namespace ClinAgenda.src.Application.AppointmentUseCase
                     },
                     doctor = new
                     {
-                        id = doctor?.Id,
-                        name = doctor?.Name
+                        id = doctor?.DoctorId,
+                        name = doctor?.DoctorName
                     },
                     specialty = new
                     {
@@ -335,9 +335,9 @@ namespace ClinAgenda.src.Application.AppointmentUseCase
                         DoctorId = appointment.DoctorId,
                         DoctorName = appointment.DoctorName,
                         StatusId = 0, // Seria preenchido com dados reais
-                        DCreated = appointment.DCreated,
-                        DLastUpdated = appointment.DLastUpdated,
-                        LActive = true
+                        dCreated = appointment.DCreated,
+                        dLastUpdated = appointment.DLastUpdated,
+                        lActive = true
                     },
                     Specialty = specialty ?? new SpecialtyDTO
                     {

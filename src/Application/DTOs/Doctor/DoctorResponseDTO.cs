@@ -7,8 +7,8 @@ namespace ClinAgenda.src.Application.DTOs.Doctor
 {
     public class DoctorResponseDTO
     {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public bool IsActive { get; set; }
+        public int DoctorId { get; set; }
+        public string DoctorName { get; set; } = string.Empty;
+        public bool lActive { get; set; }
     }
 }

@@ -175,7 +175,7 @@ namespace ClinAgenda.src.WebAPI.Controllers
         {
             try
             {
-                var toggled = await _doctorUseCase.ToggleDoctorActiveAsync(id, request.IsActive);
+                var toggled = await _doctorUseCase.ToggleDoctorActiveAsync(id, request.lActive);
 
                 if (!toggled)
                 {
@@ -205,7 +205,7 @@ namespace ClinAgenda.src.WebAPI.Controllers
         {
             try
             {
-                var toggled = await _doctorUseCase.ToggleDoctorSpecialtyActiveAsync(doctorId, specialtyId, request.IsActive);
+                var toggled = await _doctorUseCase.ToggleDoctorSpecialtyActiveAsync(doctorId, specialtyId, request.lActive);
 
                 if (!toggled)
                 {

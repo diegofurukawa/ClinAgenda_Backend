@@ -40,7 +40,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 {
                     DoctorId = doctorSpecialtyDTO.DoctorId,
                     SpecialtyId = specialtyId,
-                    LActive = doctorSpecialtyDTO.LActive
+                    LActive = doctorSpecialtyDTO.lActive
                 });
 
                 await _connection.ExecuteAsync(query, parameters);
@@ -52,7 +52,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 {
                     doctorSpecialtyDTO.DoctorId,
                     SpecialtyId = (int)doctorSpecialtyDTO.SpecialtyId,
-                    doctorSpecialtyDTO.LActive
+                    doctorSpecialtyDTO.lActive
                 };
                 
                 await _connection.ExecuteAsync(query, parameter);

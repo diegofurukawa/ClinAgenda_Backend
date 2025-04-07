@@ -11,9 +11,9 @@ namespace ClinAgenda.src.Application.DTOs.Doctor
         public required string DoctorName { get; set; }
         public int StatusId { get; set; }
         public string StatusName { get; set; } = string.Empty;
-        public DateTime DCreated { get; set; }
-        public DateTime? DLastUpdated { get; set; }
-        public bool LActive { get; set; }
+        public DateTime dCreated { get; set; }
+        public DateTime? dLastUpdated { get; set; }
+        public bool lActive { get; set; }
     }
 
 }

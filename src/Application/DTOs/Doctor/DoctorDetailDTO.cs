@@ -10,8 +10,8 @@ namespace ClinAgenda.src.Application.DTOs.Doctor
     public class DoctorDetailDTO : DoctorWithStatusDTO
     {
         public List<SpecialtyResponseDTO> Specialties { get; set; } = new();
-        public DateTime CreatedAt { get; set; }
-        public DateTime? LastUpdatedAt { get; set; }
+        public DateTime dCreated { get; set; }
+        public DateTime? dLastUpdated { get; set; }
     }
 
 }

@@ -12,8 +12,8 @@ namespace ClinAgenda.src.Application.DTOs.Doctor
     {
         public int DoctorId { get; set; }
         public int SpecialtyId { get; set; }
-        public DateTime DCreated { get; set; }
-        public DateTime? DLastUpdated { get; set; }
-        public bool LActive { get; set; }
+        public DateTime dCreated { get; set; }
+        public DateTime? dLastUpdated { get; set; }
+        public bool lActive { get; set; }
     }
 }

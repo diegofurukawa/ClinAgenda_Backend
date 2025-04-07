@@ -9,8 +9,8 @@ namespace ClinAgenda.src.Application.DTOs.Doctor
     public class DoctorSpecialtyResponseDTO
     {
         public int SpecialtyId { get; set; }
-        public string Name { get; set; } = string.Empty;
+        public string DoctorName { get; set; } = string.Empty;
         public int ScheduleDuration { get; set; }
-        public bool IsActive { get; set; }
+        public bool lActive { get; set; }
     }
 }

@@ -56,20 +56,6 @@ namespace ClinAgenda.src.WebAPI.Controllers
             }
         }
 
-        [HttpGet("types")]
-        public IActionResult GetStatusTypes()
-        {
-            try
-            {
-                var types = _statusUseCase.GetValidStatusTypes();
-                return Ok(types);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Erro ao obter tipos de status: {ex.Message}");
-            }
-        }
-
         [HttpPost("insert")]
         public async Task<IActionResult> CreateStatusAsync([FromBody] StatusInsertDTO status)
         {
@@ -185,6 +171,20 @@ namespace ClinAgenda.src.WebAPI.Controllers
                    statusType == "specialty" ||
                    statusType == "doctor" ||
                    statusType == "appointment";
+        }
+
+        [HttpGet("types")]
+        public IActionResult GetStatusTypes()
+        {
+            try
+            {
+                var result = _statusUseCase.GetValidStatusTypes();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro ao obter tipos de status: {ex.Message}");
+            }
         }
     }
 }
