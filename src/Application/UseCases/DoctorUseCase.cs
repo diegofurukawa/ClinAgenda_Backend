@@ -165,18 +165,19 @@ namespace ClinAgenda.src.Application.DoctorUseCase
                 })
                 .ToList();
 
+            // Criar objeto na ordem desejada
             return new DoctorDetailDTO
             {
                 DoctorId = doctorData.DoctorId,
                 DoctorName = doctorData.DoctorName,
-                Status = statusDto,
-                Specialties = specialties,
+                lActive = doctorData.lActive,
                 dCreated = doctorData.dCreated,
                 dLastUpdated = doctorData.dLastUpdated,
-                lActive = doctorData.lActive
+                Status = statusDto,
+                Specialties = specialties
             };
         }
-
+        
         public async Task<bool> UpdateDoctorAsync(int doctorId, DoctorUpdateDTO doctorDto)
         {
             // Verificar se o médico existe

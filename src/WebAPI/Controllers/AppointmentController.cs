@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ClinAgenda.src.WebAPI.Controllers
 {
     [ApiController]
-    [Route("api/appointment")]
+    [Route("api/Appointment")]
     public class AppointmentController : ControllerBase
     {
         private readonly AppointmentUseCase _appointmentUseCase;
@@ -67,13 +67,13 @@ namespace ClinAgenda.src.WebAPI.Controllers
             }
         }
 
-        [HttpGet("listById/{id}")]
-        public async Task<IActionResult> GetAppointmentByIdAsync(int id)
+        [HttpGet("listById/{appointmentId}")]
+        public async Task<IActionResult> GetAppointmentByIdAsync(int appointmentId)
         {
             try
             {
-                var appointment = await _appointmentUseCase.GetAppointmentByIdAsync(id);
-                if (appointment == null) return NotFound($"Agendamento com ID {id} não encontrado.");
+                var appointment = await _appointmentUseCase.GetAppointmentByIdAsync(appointmentId);
+                if (appointment == null) return NotFound($"Agendamento com ID {appointmentId} não encontrado.");
                 
                 return Ok(appointment);
             }
@@ -119,7 +119,7 @@ namespace ClinAgenda.src.WebAPI.Controllers
                 
                 var createdAppointment = await _appointmentUseCase.GetAppointmentByIdAsync(createdAppointmentId);
                 
-                return CreatedAtAction(nameof(GetAppointmentByIdAsync), new { id = createdAppointmentId }, createdAppointment);
+                return CreatedAtAction(nameof(GetAppointmentByIdAsync), new { appointmentId = createdAppointmentId }, createdAppointment);
             }
             catch (ArgumentException ex)
             {
@@ -131,8 +131,8 @@ namespace ClinAgenda.src.WebAPI.Controllers
             }
         }
         
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateAppointmentAsync(int id, [FromBody] AppointmentInsertDTO appointment)
+        [HttpPut("update/{appointmentId}")]
+        public async Task<IActionResult> UpdateAppointmentAsync(int appointmentId, [FromBody] AppointmentInsertDTO appointment)
         {
             try
             {
@@ -158,14 +158,14 @@ namespace ClinAgenda.src.WebAPI.Controllers
                 if (hasStatus == null)
                     return BadRequest($"O status com ID {appointment.StatusId} não existe.");
 
-                var updated = await _appointmentUseCase.UpdateAppointmentAsync(id, appointment);
+                var updated = await _appointmentUseCase.UpdateAppointmentAsync(appointmentId, appointment);
                 
                 if (!updated)
                 {
-                    return NotFound($"Agendamento com ID {id} não encontrado ou não foi possível atualizar.");
+                    return NotFound($"Agendamento com ID {appointmentId} não encontrado ou não foi possível atualizar.");
                 }
                 
-                var updatedAppointment = await _appointmentUseCase.GetAppointmentByIdAsync(id);
+                var updatedAppointment = await _appointmentUseCase.GetAppointmentByIdAsync(appointmentId);
                 return Ok(updatedAppointment);
             }
             catch (ArgumentException ex)
@@ -178,19 +178,19 @@ namespace ClinAgenda.src.WebAPI.Controllers
             }
         }
         
-        [HttpPatch("toggle-active/{id}")]
-        public async Task<IActionResult> ToggleAppointmentActiveAsync(int id, [FromQuery] bool active)
+        [HttpPatch("toggle-active/{appointmentId}")]
+        public async Task<IActionResult> ToggleAppointmentActiveAsync(int appointmentId, [FromQuery] bool active)
         {
             try
             {
-                var toggled = await _appointmentUseCase.ToggleAppointmentActiveAsync(id, active);
+                var toggled = await _appointmentUseCase.ToggleAppointmentActiveAsync(appointmentId, active);
 
                 if (!toggled)
                 {
-                    return NotFound($"Agendamento com ID {id} não encontrado.");
+                    return NotFound($"Agendamento com ID {appointmentId} não encontrado.");
                 }
 
-                var updatedAppointment = await _appointmentUseCase.GetAppointmentByIdAsync(id);
+                var updatedAppointment = await _appointmentUseCase.GetAppointmentByIdAsync(appointmentId);
                 return Ok(updatedAppointment);
             }
             catch (Exception ex)
@@ -199,16 +199,16 @@ namespace ClinAgenda.src.WebAPI.Controllers
             }
         }
         
-        [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> DeleteAppointmentAsync(int id)
+        [HttpDelete("delete/{appointmentId}")]
+        public async Task<IActionResult> DeleteAppointmentAsync(int appointmentId)
         {
             try
             {
-                var deleted = await _appointmentUseCase.DeleteAppointmentAsync(id);
+                var deleted = await _appointmentUseCase.DeleteAppointmentAsync(appointmentId);
                 
                 if (!deleted)
                 {
-                    return NotFound($"Agendamento com ID {id} não encontrado ou não foi possível excluir.");
+                    return NotFound($"Agendamento com ID {appointmentId} não encontrado ou não foi possível excluir.");
                 }
                 
                 return NoContent();

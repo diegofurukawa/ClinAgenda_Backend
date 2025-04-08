@@ -22,18 +22,18 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         {
             string query = @"
                 SELECT 
-                    AppointmentId,
-                    PATIENTID AS PatientId,
-                    DOCTORID AS DoctorId,
-                    SPECIALTYID AS SpecialtyId,
-                    STATUSID AS StatusId,
-                    APPOINTMENTDATE AS DAppointmentDate,
-                    OBSERVATION AS Observation,
-                    DCreated AS DCreated,
-                    dlastupdated AS DLastUpdated,
+                    appointmentId,
+                    patientId AS PatientId,
+                    doctorId AS DoctorId,
+                    specialtyId AS SpecialtyId,
+                    statusId AS StatusId,
+                    dAppointmentDate AS DAppointmentDate,
+                    observation AS Observation,
+                    dCreated AS DCreated,
+                    dLastUpdated AS DLastUpdated,
                     lActive AS LActive
                 FROM appointment
-                WHERE ID = @Id";
+                WHERE appointmentId = @AppointmentId";
 
             var parameters = new { AppointmentId = appointmentId };
             
@@ -55,35 +55,35 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         {
             var queryBase = new StringBuilder(@"     
                     FROM appointment A
-                    INNER JOIN patient P ON P.PATIENTID = A.PATIENTID
-                    INNER JOIN doctor D ON D.DOCTORID = A.DOCTORID
-                    INNER JOIN specialty SP ON SP.SPECIALTYID = A.SPECIALTYID
-                    INNER JOIN status S ON S.STATUSID = A.STATUSID
+                    INNER JOIN patient P ON P.patientId = A.patientId
+                    INNER JOIN doctor D ON D.doctorId = A.doctorId
+                    INNER JOIN specialty SP ON SP.specialtyId = A.specialtyId
+                    INNER JOIN status S ON S.statusId = A.statusId
                     WHERE 1 = 1");
 
             var parameters = new DynamicParameters();
 
             if (patientId.HasValue)
             {
-                queryBase.Append(" AND A.PATIENTID = @PatientId");
+                queryBase.Append(" AND A.patientId = @PatientId");
                 parameters.Add("PatientId", patientId.Value);
             }
 
             if (doctorId.HasValue)
             {
-                queryBase.Append(" AND A.DOCTORID = @DoctorId");
+                queryBase.Append(" AND A.doctorId = @DoctorId");
                 parameters.Add("DoctorId", doctorId.Value);
             }
 
             if (specialtyId.HasValue)
             {
-                queryBase.Append(" AND A.SPECIALTYID = @SpecialtyId");
+                queryBase.Append(" AND A.specialtyId = @SpecialtyId");
                 parameters.Add("SpecialtyId", specialtyId.Value);
             }
 
             if (statusId.HasValue)
             {
-                queryBase.Append(" AND A.STATUSID = @StatusId");
+                queryBase.Append(" AND A.statusId = @StatusId");
                 parameters.Add("StatusId", statusId.Value);
             }
             
@@ -105,24 +105,24 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 parameters.Add("LActive", lActive.Value);
             }
 
-            var countQuery = $"SELECT COUNT(DISTINCT A.AppointmentId) {queryBase}";
+            var countQuery = $"SELECT COUNT(DISTINCT A.appointmentId) {queryBase}";
             int total = await _connection.ExecuteScalarAsync<int>(countQuery, parameters);
 
             var dataQuery = $@"
                     SELECT 
-                        A.AppointmentId, 
-                        P.PatientId,
-                        P.PatientName,
-                        D.DoctorId,
-                        D.DoctorName,
-                        SP.SpecialtyId,
-                        SP.SpecialtyName,
-                        S.StatusId,
-                        S.StatusName,
+                        A.appointmentId, 
+                        P.patientId,
+                        P.patientName,
+                        D.doctorId,
+                        D.doctorName,
+                        SP.specialtyId,
+                        SP.specialtyName,
+                        S.statusId,
+                        S.statusName,
                         A.dAppointmentDate,
-                        A.OBSERVATION AS Observation,
-                        A.DCreated AS DCreated,
-                        A.dlastupdated AS DLastUpdated,
+                        A.observation AS Observation,
+                        A.dCreated AS DCreated,
+                        A.dLastUpdated AS DLastUpdated,
                         A.lActive AS LActive
                     {queryBase}
                     ORDER BY A.dAppointmentDate
@@ -140,13 +140,13 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         {
             string query = @"
                 INSERT INTO appointment (
-                    PATIENTID, 
-                    DOCTORID, 
-                    SPECIALTYID, 
-                    STATUSID, 
-                    APPOINTMENTDATE, 
-                    OBSERVATION,
-                    DCreated,
+                    patientId, 
+                    doctorId, 
+                    specialtyId, 
+                    statusId, 
+                    dAppointmentDate, 
+                    observation,
+                    dCreated,
                     lActive
                 ) 
                 VALUES (
@@ -169,15 +169,15 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             string query = @"
                 UPDATE appointment 
                 SET 
-                    PATIENTID = @PatientId, 
-                    DOCTORID = @DoctorId, 
-                    SPECIALTYID = @SpecialtyId, 
-                    STATUSID = @StatusId, 
-                    APPOINTMENTDATE = @DAppointmentDate, 
-                    OBSERVATION = @Observation,
-                    dlastupdated = NOW(),
+                    patientId = @PatientId, 
+                    doctorId = @DoctorId, 
+                    specialtyId = @SpecialtyId, 
+                    statusId = @StatusId, 
+                    dAppointmentDate = @DAppointmentDate, 
+                    observation = @Observation,
+                    dLastUpdated = NOW(),
                     lActive = @LActive
-                WHERE AppointmentId = @AppointmentId";
+                WHERE appointmentId = @AppointmentId";
 
             var parameters = new DynamicParameters(appointmentInsertDTO);
             parameters.Add("AppointmentId", appointmentId);
@@ -191,8 +191,8 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 UPDATE appointment 
                 SET 
                     lActive = @Active,
-                    dlastupdated = NOW()
-                WHERE AppointmentId = @AppointmentId";
+                    dLastUpdated = NOW()
+                WHERE appointmentId = @AppointmentId";
 
             var parameters = new { AppointmentId = appointmentId, Active = active };
             
@@ -203,7 +203,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         {
             string query = @"
                 DELETE FROM appointment
-                WHERE AppointmentId = @AppointmentId";
+                WHERE appointmentId = @AppointmentId";
 
             var parameters = new { AppointmentId = appointmentId };
             
@@ -219,13 +219,13 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             var query = @"
                 SELECT COUNT(1) 
                 FROM appointment A
-                INNER JOIN specialty SP ON SP.SPECIALTYID = A.SPECIALTYID
-                WHERE A.DOCTORID = @DoctorId
+                INNER JOIN specialty SP ON SP.specialtyId = A.specialtyId
+                WHERE A.doctorId = @DoctorId
                 AND A.lActive = 1
                 AND (
-                    (@StartTime BETWEEN A.dAppointmentDate AND DATE_ADD(A.dAppointmentDate, INTERVAL SP.SCHEDULEDURATION MINUTE))
+                    (@StartTime BETWEEN A.dAppointmentDate AND DATE_ADD(A.dAppointmentDate, INTERVAL SP.nScheduleDuration MINUTE))
                     OR
-                    (@EndTime BETWEEN A.dAppointmentDate AND DATE_ADD(A.dAppointmentDate, INTERVAL SP.SCHEDULEDURATION MINUTE))
+                    (@EndTime BETWEEN A.dAppointmentDate AND DATE_ADD(A.dAppointmentDate, INTERVAL SP.nScheduleDuration MINUTE))
                     OR
                     (A.dAppointmentDate BETWEEN @StartTime AND @EndTime)
                 )";
@@ -238,7 +238,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             // Se estivermos atualizando um agendamento existente, excluímos ele da verificação
             if (appointmentId.HasValue)
             {
-                query += " AND A.AppointmentId != @AppointmentId";
+                query += " AND A.appointmentId != @AppointmentId";
                 parameters.Add("AppointmentId", appointmentId.Value);
             }
             

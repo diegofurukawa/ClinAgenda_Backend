@@ -251,7 +251,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 new { DoctorId = doctorid });
                 
             // Então excluir o médico
-            string query = "DELETE FROM DOCTOR WHERE ID = @DoctorId";
+            string query = "delete from doctor where doctorid = @DoctorId";
             var parameters = new { DoctorId = doctorid };
             return await _connection.ExecuteAsync(query, parameters);
         }
