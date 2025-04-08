@@ -28,7 +28,7 @@ namespace ClinAgenda.src.WebAPI.Controllers
         
         [HttpGet("list")]
         public async Task<IActionResult> GetDoctorsAsync(
-            [FromQuery] string? name, 
+            [FromQuery] string? doctorName, 
             [FromQuery] int? specialtyId, 
             [FromQuery] int? statusId,
             [FromQuery] bool? lActive,
@@ -37,7 +37,7 @@ namespace ClinAgenda.src.WebAPI.Controllers
         {
             try
             {
-                var result = await _doctorUseCase.GetDoctorsAsync(name, specialtyId, statusId, lActive, itemsPerPage, page);
+                var result = await _doctorUseCase.GetDoctorsAsync(doctorName, specialtyId, statusId, lActive, itemsPerPage, page);
                 return Ok(result);
             }
             catch (Exception ex)

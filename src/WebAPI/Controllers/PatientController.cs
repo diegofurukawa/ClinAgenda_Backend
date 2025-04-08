@@ -22,7 +22,7 @@ namespace ClinAgenda.src.WebAPI.Controllers
 
         [HttpGet("list")]
         public async Task<IActionResult> GetPatientsAsync(
-            [FromQuery] string? name, 
+            [FromQuery] string? patientName, 
             [FromQuery] string? documentNumber, 
             [FromQuery] int? statusId,
             [FromQuery] bool? lActive,
@@ -33,7 +33,7 @@ namespace ClinAgenda.src.WebAPI.Controllers
             try
             {
                 var result = await _patientUseCase.GetPatientsAsync(
-                    name, 
+                    patientName, 
                     documentNumber, 
                     statusId,
                     lActive,
