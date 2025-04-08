@@ -40,7 +40,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         }
 
         public async Task<(int total, IEnumerable<SpecialtyDTO> specialties)> GetAllSpecialtyAsync(
-            string? name = null, 
+            string? specialtyName = null, 
             bool? lActive = null, 
             int? itemsPerPage = 10, 
             int? page = 1)
@@ -50,10 +50,10 @@ namespace ClinAgenda.src.Infrastructure.Repositories
 
             var parameters = new DynamicParameters();
 
-            if (!string.IsNullOrEmpty(name))
+            if (!string.IsNullOrEmpty(specialtyName))
             {
-                queryBase.Append(" AND S.STATUSNAME LIKE @StatusName");
-                parameters.Add("Name", $"%{name}%");
+                queryBase.Append(" AND S.specialtyName LIKE @SpecialtyName");
+                parameters.Add("specialtyName", $"%{specialtyName}%");
             }
 
             if (lActive.HasValue)
