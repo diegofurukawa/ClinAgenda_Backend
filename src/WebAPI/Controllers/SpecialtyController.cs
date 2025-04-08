@@ -36,16 +36,16 @@ namespace ClinAgenda.src.WebAPI.Controllers
             }
         }
 
-        [HttpGet("listById/{id}")]
-        public async Task<IActionResult> GetSpecialtyByIdAsync(int id)
+        [HttpGet("listById/{specialtyId}")]
+        public async Task<IActionResult> GetSpecialtyByIdAsync(int specialtyId)
         {
             try
             {
-                var specialty = await _specialtyUseCase.GetSpecialtyByIdAsync(id);
+                var specialty = await _specialtyUseCase.GetSpecialtyByIdAsync(specialtyId);
 
                 if (specialty == null)
                 {
-                    return NotFound($"Especialidade com ID {id} não encontrada.");
+                    return NotFound($"Especialidade com ID {specialtyId} não encontrada.");
                 }
 
                 return Ok(specialty);
@@ -77,8 +77,8 @@ namespace ClinAgenda.src.WebAPI.Controllers
             }
         }
 
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateSpecialtyAsync(int id, [FromBody] SpecialtyInsertDTO specialty)
+        [HttpPut("update/{specialtyId}")]
+        public async Task<IActionResult> UpdateSpecialtyAsync(int specialtyId, [FromBody] SpecialtyInsertDTO specialty)
         {
             try
             {
@@ -87,14 +87,14 @@ namespace ClinAgenda.src.WebAPI.Controllers
                     return BadRequest("Os dados da especialidade são inválidos.");
                 }
 
-                var updated = await _specialtyUseCase.UpdateSpecialtyAsync(id, specialty);
+                var updated = await _specialtyUseCase.UpdateSpecialtyAsync(specialtyId, specialty);
 
                 if (!updated)
                 {
-                    return NotFound($"Especialidade com ID {id} não encontrada.");
+                    return NotFound($"Especialidade com ID {specialtyId} não encontrada.");
                 }
 
-                var updatedSpecialty = await _specialtyUseCase.GetSpecialtyByIdAsync(id);
+                var updatedSpecialty = await _specialtyUseCase.GetSpecialtyByIdAsync(specialtyId);
                 return Ok(updatedSpecialty);
             }
             catch (Exception ex)
@@ -103,19 +103,19 @@ namespace ClinAgenda.src.WebAPI.Controllers
             }
         }
 
-        [HttpPatch("toggle-active/{id}")]
-        public async Task<IActionResult> ToggleSpecialtyActiveAsync(int id, [FromQuery] bool active)
+        [HttpPatch("toggle-active/{specialtyId}")]
+        public async Task<IActionResult> ToggleSpecialtyActiveAsync(int specialtyId, [FromQuery] bool active)
         {
             try
             {
-                var toggled = await _specialtyUseCase.ToggleSpecialtyActiveAsync(id, active);
+                var toggled = await _specialtyUseCase.ToggleSpecialtyActiveAsync(specialtyId, active);
 
                 if (!toggled)
                 {
-                    return NotFound($"Especialidade com ID {id} não encontrada.");
+                    return NotFound($"Especialidade com ID {specialtyId} não encontrada.");
                 }
 
-                var updatedSpecialty = await _specialtyUseCase.GetSpecialtyByIdAsync(id);
+                var updatedSpecialty = await _specialtyUseCase.GetSpecialtyByIdAsync(specialtyId);
                 return Ok(updatedSpecialty);
             }
             catch (Exception ex)
@@ -124,16 +124,16 @@ namespace ClinAgenda.src.WebAPI.Controllers
             }
         }
 
-        [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> DeleteSpecialtyAsync(int id)
+        [HttpDelete("delete/{specialtyId}")]
+        public async Task<IActionResult> DeleteSpecialtyAsync(int specialtyId)
         {
             try
             {
-                var deleted = await _specialtyUseCase.DeleteSpecialtyAsync(id);
+                var deleted = await _specialtyUseCase.DeleteSpecialtyAsync(specialtyId);
 
                 if (!deleted)
                 {
-                    return NotFound($"Especialidade com ID {id} não encontrada.");
+                    return NotFound($"Especialidade com ID {specialtyId} não encontrada.");
                 }
 
                 return NoContent();

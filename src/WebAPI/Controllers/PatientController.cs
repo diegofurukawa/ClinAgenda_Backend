@@ -48,12 +48,12 @@ namespace ClinAgenda.src.WebAPI.Controllers
             }
         }
 
-        [HttpGet("listById/{id}")]
-        public async Task<IActionResult> GetPatientByIdAsync(int id)        
+        [HttpGet("listById/{patientId}")]
+        public async Task<IActionResult> GetPatientByIdAsync(int patientId)        
         {
             try
             {
-                var patient = await _patientUseCase.GetPatientByIdAsync(id);
+                var patient = await _patientUseCase.GetPatientByIdAsync(patientId);
                 if (patient == null) return NotFound();
                 return Ok(patient);
             }
@@ -86,7 +86,7 @@ namespace ClinAgenda.src.WebAPI.Controllers
                 
                 var createdPatient = await _patientUseCase.GetPatientByIdAsync(createdPatientId);
                 
-                return CreatedAtAction(nameof(GetPatientByIdAsync), new { id = createdPatientId }, createdPatient);
+                return CreatedAtAction(nameof(GetPatientByIdAsync), new { patientid = createdPatientId }, createdPatient);
             }
             catch (ArgumentException ex)
             {
@@ -98,8 +98,8 @@ namespace ClinAgenda.src.WebAPI.Controllers
             }
         }
         
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdatePatientAsync(int id, [FromBody] PatientInsertDTO patient)
+        [HttpPut("update/{patientId}")]
+        public async Task<IActionResult> UpdatePatientAsync(int patientId, [FromBody] PatientInsertDTO patient)
         {
             try
             {
@@ -112,14 +112,14 @@ namespace ClinAgenda.src.WebAPI.Controllers
                 if (hasStatus == null)
                     return BadRequest($"O status ID {patient.StatusId} não existe");
 
-                var updated = await _patientUseCase.UpdatePatientAsync(id, patient);
+                var updated = await _patientUseCase.UpdatePatientAsync(patientId, patient);
                 
                 if (!updated)
                 {
-                    return NotFound($"Paciente com ID {id} não encontrado ou não foi possível atualizar.");
+                    return NotFound($"Paciente com ID {patientId} não encontrado ou não foi possível atualizar.");
                 }
                 
-                var updatedPatient = await _patientUseCase.GetPatientByIdAsync(id);
+                var updatedPatient = await _patientUseCase.GetPatientByIdAsync(patientId);
                 return Ok(updatedPatient);
             }
             catch (ArgumentException ex)
@@ -132,19 +132,19 @@ namespace ClinAgenda.src.WebAPI.Controllers
             }
         }
         
-        [HttpPatch("toggle-active/{id}")]
-        public async Task<IActionResult> TogglePatientActiveAsync(int id, [FromQuery] bool active)
+        [HttpPatch("toggle-active/{patientId}")]
+        public async Task<IActionResult> TogglePatientActiveAsync(int patientId, [FromQuery] bool active)
         {
             try
             {
-                var toggled = await _patientUseCase.TogglePatientActiveAsync(id, active);
+                var toggled = await _patientUseCase.TogglePatientActiveAsync(patientId, active);
 
                 if (!toggled)
                 {
-                    return NotFound($"Paciente com ID {id} não encontrado.");
+                    return NotFound($"Paciente com ID {patientId} não encontrado.");
                 }
 
-                var updatedPatient = await _patientUseCase.GetPatientByIdAsync(id);
+                var updatedPatient = await _patientUseCase.GetPatientByIdAsync(patientId);
                 return Ok(updatedPatient);
             }
             catch (Exception ex)
@@ -153,16 +153,16 @@ namespace ClinAgenda.src.WebAPI.Controllers
             }
         }
         
-        [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> DeletePatientAsync(int id)
+        [HttpDelete("delete/{patientId}")]
+        public async Task<IActionResult> DeletePatientAsync(int patientId)
         {
             try
             {
-                var deleted = await _patientUseCase.DeletePatientAsync(id);
+                var deleted = await _patientUseCase.DeletePatientAsync(patientId);
                 
                 if (!deleted)
                 {
-                    return NotFound($"Paciente com ID {id} não encontrado ou não foi possível excluir.");
+                    return NotFound($"Paciente com ID {patientId} não encontrado ou não foi possível excluir.");
                 }
                 
                 return NoContent();

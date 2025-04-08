@@ -21,7 +21,7 @@ namespace ClinAgenda.src.Application.DTOs.Patient
         public required int StatusId { get; set; }
 
         [Required(ErrorMessage = "A data de nascimento do paciente é obrigatória", AllowEmptyStrings = false)]
-        public required string DBirthDate { get; set; }
+        public required string dBirthdate { get; set; }
         
         public bool LActive { get; set; } = true;
     }

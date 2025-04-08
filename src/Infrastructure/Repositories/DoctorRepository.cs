@@ -19,7 +19,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         }
         
         public async Task<IEnumerable<DoctorListDTO>> GetDoctorsAsync(
-            string? name, 
+            string? doctorName, 
             int? specialtyId, 
             int? statusId,
             bool? isActive,
@@ -34,27 +34,27 @@ namespace ClinAgenda.src.Infrastructure.Repositories
 
             var parameters = new DynamicParameters();
 
-            if (!string.IsNullOrEmpty(name))
+            if (!string.IsNullOrEmpty(doctorName))
             {
-                innerJoins.Append(" AND D.NAME LIKE @Name");
-                parameters.Add("Name", $"%{name}%");
+                innerJoins.Append(" AND d.doctorName LIKE @doctorName");
+                parameters.Add("doctorName", $"%{doctorName}%");
             }
 
             if (specialtyId.HasValue)
             {
-                innerJoins.Append(" AND DSPE.SPECIALTYID = @SpecialtyId");
+                innerJoins.Append(" AND dspe.SPECIALTYID = @SpecialtyId");
                 parameters.Add("SpecialtyId", specialtyId.Value);
             }
 
             if (statusId.HasValue)
             {
-                innerJoins.Append(" AND S.StatusId = @StatusId");
+                innerJoins.Append(" AND s.StatusId = @StatusId");
                 parameters.Add("StatusId", statusId.Value);
             }
             
             if (isActive.HasValue)
             {
-                innerJoins.Append(" AND D.lActive = @IsActive");
+                innerJoins.Append(" AND d.lActive = @IsActive");
                 parameters.Add("IsActive", isActive.Value);
             }
 
@@ -71,7 +71,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                     d.dlastupdated as dlastupdated,
                     d.lactive as lactive
                 {innerJoins}
-                ORDER BY D.doctorid
+                ORDER BY d.doctorid
                 LIMIT @Limit OFFSET @Offset";
 
             return await _connection.QueryAsync<DoctorListDTO>(query.ToString(), parameters);
@@ -80,14 +80,14 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         public async Task<IEnumerable<DoctorSpecialtyDTO>> GetDoctorSpecialtyAsync(int[] doctorIds)
         {
             var query = @"
-                SELECT 
-                    DS.doctorid,
-                    SP.SpecialtyId,
-                    SP.SpecialtyName,
-                    SP.SCHEDULEDURATION AS NScheduleDuration,
-                    SP.DCreated,
-                    SP.DLastUpdated,
-                    SP.LActive
+                select 
+                    ds.doctorid,
+                    sp.specialtyid,
+                    sp.specialtyname,
+                    sp.nscheduleduration,
+                    sp.dcreated,
+                    sp.dlastupdated,
+                    sp.lactive
                 from doctor_specialty ds
                 inner join specialty sp on ds.specialtyid = sp.specialtyid
                 where ds.doctorid in @doctorids";
@@ -162,7 +162,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
 
             if (doctorid > 0)
             {
-                queryBase.Append(" AND D.DOCTORID = @DoctorId");
+                queryBase.Append(" AND d.doctorId = @DoctorId");
                 parameters.Add("DoctorId", doctorid);
             }
 
@@ -173,11 +173,11 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             d.statusid, 
             s.statusname,
             dspe.specialtyid,
-            sp.name as specialtyname,
-            sp.scheduleduration as nscheduleduration,
-            d.dcreated as dcreated,
-            d.dlastupdated as dlastupdated,
-            d.lactive as lactive
+            sp.specialtyname,
+            sp.nscheduleduration,
+            d.dcreated,
+            d.dlastupdated,
+            d.lactive
         {queryBase}
         ORDER BY d.doctorid";
 
@@ -195,7 +195,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 statusid = @statusid,
                 dlastupdated = now(),
                 lactive = @LActive
-            WHERE ID = @DoctorId";
+            WHERE DoctorId = @DoctorId";
             
             var parameters = new DynamicParameters(doctor);
             parameters.Add("DoctorId", doctorid);
@@ -262,7 +262,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             UPDATE doctor SET 
                 lActive = @Active,
                 dlastupdated = NOW()
-            WHERE ID = @DoctorId";
+            WHERE DoctorId = @DoctorId";
 
             var parameters = new { DoctorId = doctorid, Active = active };
             return await _connection.ExecuteAsync(query, parameters);

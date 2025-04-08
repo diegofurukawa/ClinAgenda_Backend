@@ -96,13 +96,13 @@ namespace ClinAgenda.src.Application.PatientUseCase
                 throw new ArgumentException("O documento do paciente é obrigatório");
             }
 
-            if (string.IsNullOrWhiteSpace(patientDTO.DBirthDate))
+            if (string.IsNullOrWhiteSpace(patientDTO.dBirthdate))
             {
                 throw new ArgumentException("A data de nascimento do paciente é obrigatória");
             }
 
             // Validar se a data é válida
-            if (!DateTime.TryParse(patientDTO.DBirthDate, out _))
+            if (!DateTime.TryParse(patientDTO.dBirthdate, out _))
             {
                 throw new ArgumentException("Data de nascimento inválida. Use o formato YYYY-MM-DD");
             }
@@ -140,13 +140,13 @@ namespace ClinAgenda.src.Application.PatientUseCase
                 throw new ArgumentException("O documento do paciente é obrigatório");
             }
 
-            if (string.IsNullOrWhiteSpace(patientDTO.DBirthDate))
+            if (string.IsNullOrWhiteSpace(patientDTO.dBirthdate))
             {
                 throw new ArgumentException("A data de nascimento do paciente é obrigatória");
             }
 
             // Validar se a data é válida
-            if (!DateTime.TryParse(patientDTO.DBirthDate, out _))
+            if (!DateTime.TryParse(patientDTO.dBirthdate, out _))
             {
                 throw new ArgumentException("Data de nascimento inválida. Use o formato YYYY-MM-DD");
             }

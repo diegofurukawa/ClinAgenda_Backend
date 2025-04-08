@@ -96,7 +96,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             ) 
             VALUES (
                 @SpecialtyName, 
-                @NScheduleDuration,
+                @nScheduleDuration,
                 NOW(),
                 @LActive
             );
@@ -111,10 +111,10 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             UPDATE specialty 
             SET 
                 SpecialtyName = @SpecialtyName, 
-                NScheduleDuratio = @NScheduleDuration, 
+                nScheduleDuration = @nScheduleDuration, 
                 dLastUpdated = NOW(), 
                 LActive = @LActive
-            WHERE ID = @SpecialtyId";
+            WHERE SpecialtyId = @SpecialtyId";
 
             var parameters = new DynamicParameters(specialtyInsertDTO);
             parameters.Add("SpecialtyId", SpecialtyId);

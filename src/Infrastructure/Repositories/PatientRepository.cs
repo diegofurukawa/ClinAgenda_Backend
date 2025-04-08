@@ -23,14 +23,14 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             string query = @"
                 SELECT 
                     p.PatientId,
-                    p.name AS PatientName,
-                    p.phonenumber AS PhoneNumber,
-                    p.documentnumber AS DocumentNumber,
-                    p.birthdate AS DBirthDate,
-                    p.statusid AS StatusId,
-                    p.DCreated AS DCreated,
-                    p.dlastupdated AS DLastUpdated,
-                    p.lActive AS LActive
+                    p.PatientName,
+                    p.PhoneNumber,
+                    p.DocumentNumber,
+                    p.dBirthdate,
+                    p.StatusId,
+                    p.dCreated,
+                    p.dlastUpdated,
+                    p.lActive
                 FROM patient p
                 WHERE p.PatientId = @PatientId";
 
@@ -42,7 +42,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         }
 
         public async Task<(int total, IEnumerable<PatientListDTO> patients)> GetAllPatientAsync(
-            string? name, 
+            string? patientName, 
             string? documentNumber, 
             int? statusId,
             bool? lActive,
@@ -56,10 +56,10 @@ namespace ClinAgenda.src.Infrastructure.Repositories
 
             var parameters = new DynamicParameters();
 
-            if (!string.IsNullOrEmpty(name))
+            if (!string.IsNullOrEmpty(patientName))
             {
-                queryBase.Append(" AND P.NAME LIKE @Name");
-                parameters.Add("Name", $"%{name}%");
+                queryBase.Append(" AND P.patientName LIKE @PatientName");
+                parameters.Add("patientName", $"%{patientName}%");
             }
 
             if (!string.IsNullOrEmpty(documentNumber))
@@ -87,9 +87,9 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                     SELECT 
                         P.PatientId, 
                         P.PatientName,
-                        P.PHONENUMBER AS PhoneNumber,
-                        P.DOCUMENTNUMBER AS DocumentNumber,
-                        P.DBirthDate,
+                        P.PhoneNumber,
+                        P.DocumentNumber,
+                        P.dBirthdate,
                         P.StatusId, 
                         S.StatusName,
                         P.DCreated AS DCreated,
@@ -112,10 +112,10 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             try
             {
                 // Verificar e normalizar a data se necessário
-                string normalizedDate = patientInsertDTO.DBirthDate;
-                if (DateTime.TryParse(patientInsertDTO.DBirthDate, out DateTime birthDate))
+                string normalizedDate = patientInsertDTO.dBirthdate;
+                if (DateTime.TryParse(patientInsertDTO.dBirthdate, out DateTime dBirthdate))
                 {
-                    normalizedDate = birthDate.ToString("yyyy-MM-dd");
+                    normalizedDate = dBirthdate.ToString("yyyy-MM-dd");
                 }
                 
                 // Preparar os parâmetros para garantir o formato correto
@@ -134,7 +134,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                         patientname, 
                         phonenumber, 
                         documentnumber, 
-                        birthdate, 
+                        dBirthdate, 
                         statusid, 
                         dCreated, 
                         lActive
@@ -168,10 +168,10 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             try
             {
                 // Verificar e normalizar a data se necessário
-                string normalizedDate = patientInsertDTO.DBirthDate;
-                if (DateTime.TryParse(patientInsertDTO.DBirthDate, out DateTime birthDate))
+                string normalizedDate = patientInsertDTO.dBirthdate;
+                if (DateTime.TryParse(patientInsertDTO.dBirthdate, out DateTime dBirthdate))
                 {
-                    normalizedDate = birthDate.ToString("yyyy-MM-dd");
+                    normalizedDate = dBirthdate.ToString("yyyy-MM-dd");
                 }
                 
                 string query = @"
@@ -180,11 +180,11 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                         patientname = @PatientName, 
                         phonenumber = @PhoneNumber, 
                         documentnumber = @DocumentNumber, 
-                        birthdate = @DBirthDate, 
+                        dBirthdate = @DBirthDate, 
                         statusid = @StatusId,
                         dlastupdated = NOW(),
                         lActive = @LActive
-                    WHERE id = @PatientId";
+                    WHERE PatientId = @PatientId";
 
                 var parameters = new
                 {
@@ -192,7 +192,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                     patientInsertDTO.PatientName,
                     patientInsertDTO.PhoneNumber,
                     patientInsertDTO.DocumentNumber,
-                    DBirthDate = normalizedDate,
+                    dBirthdate = normalizedDate,
                     patientInsertDTO.StatusId,
                     patientInsertDTO.LActive
                 };
@@ -202,7 +202,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             catch (Exception ex)
             {
                 // Melhorar a mensagem de erro para capturar problemas relacionados à data
-                if (ex.Message.Contains("Incorrect date value") || ex.Message.Contains("birthdate"))
+                if (ex.Message.Contains("Incorrect date value") || ex.Message.Contains("dBirthdate"))
                 {
                     throw new Exception($"Formato de data inválido para o campo birthDate. Use o formato YYYY-MM-DD. Erro original: {ex.Message}");
                 }

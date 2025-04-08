@@ -36,16 +36,16 @@ namespace ClinAgenda.src.WebAPI.Controllers
             }
         }
 
-        [HttpGet("listById/{id}")]
-        public async Task<IActionResult> GetStatusByIdAsync(int id)
+        [HttpGet("listById/{statusId}")]
+        public async Task<IActionResult> GetStatusByIdAsync(int statusId)
         {
             try
             {
-                var status = await _statusUseCase.GetStatusByIdAsync(id);
+                var status = await _statusUseCase.GetStatusByIdAsync(statusId);
 
                 if (status == null)
                 {
-                    return NotFound($"Status com ID {id} não encontrado.");
+                    return NotFound($"Status com ID {statusId} não encontrado.");
                 }
 
                 return Ok(status);
@@ -57,7 +57,7 @@ namespace ClinAgenda.src.WebAPI.Controllers
         }
 
         [HttpPost("insert")]
-        public async Task<IActionResult> CreateStatusAsync([FromBody] StatusInsertDTO status)
+        public async Task<IActionResult> InsertStatusAsync([FromBody] StatusInsertDTO status)
         {
             try
             {
@@ -75,7 +75,7 @@ namespace ClinAgenda.src.WebAPI.Controllers
                 var createdStatusId = await _statusUseCase.CreateStatusAsync(status);
                 var infosStatusCreated = await _statusUseCase.GetStatusByIdAsync(createdStatusId);
 
-                return CreatedAtAction(nameof(GetStatusByIdAsync), new { id = createdStatusId }, infosStatusCreated);
+                return CreatedAtAction(nameof(GetStatusByIdAsync), new { statusId = createdStatusId }, infosStatusCreated);
             }
             catch (ArgumentException ex)
             {
@@ -87,8 +87,8 @@ namespace ClinAgenda.src.WebAPI.Controllers
             }
         }
 
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> UpdateStatusAsync(int id, [FromBody] StatusInsertDTO status)
+        [HttpPut("update/{statusId}")]
+        public async Task<IActionResult> UpdateStatusAsync(int statusId, [FromBody] StatusInsertDTO status)
         {
             try
             {
@@ -103,14 +103,14 @@ namespace ClinAgenda.src.WebAPI.Controllers
                     return BadRequest("O tipo de status deve ser patient, specialty, doctor ou appointment.");
                 }
 
-                var updated = await _statusUseCase.UpdateStatusAsync(id, status);
+                var updated = await _statusUseCase.UpdateStatusAsync(statusId, status);
 
                 if (!updated)
                 {
-                    return NotFound($"Status com ID {id} não encontrado.");
+                    return NotFound($"Status com ID {statusId} não encontrado.");
                 }
 
-                var updatedStatus = await _statusUseCase.GetStatusByIdAsync(id);
+                var updatedStatus = await _statusUseCase.GetStatusByIdAsync(statusId);
                 return Ok(updatedStatus);
             }
             catch (ArgumentException ex)
@@ -123,19 +123,19 @@ namespace ClinAgenda.src.WebAPI.Controllers
             }
         }
 
-        [HttpPatch("toggle-active/{id}")]
-        public async Task<IActionResult> ToggleStatusActiveAsync(int id, [FromQuery] bool active)
+        [HttpPatch("toggle-active/{statusId}")]
+        public async Task<IActionResult> ToggleStatusActiveAsync(int statusId, [FromQuery] bool active)
         {
             try
             {
-                var toggled = await _statusUseCase.ToggleStatusActiveAsync(id, active);
+                var toggled = await _statusUseCase.ToggleStatusActiveAsync(statusId, active);
 
                 if (!toggled)
                 {
-                    return NotFound($"Status com ID {id} não encontrado.");
+                    return NotFound($"Status com ID {statusId} não encontrado.");
                 }
 
-                var updatedStatus = await _statusUseCase.GetStatusByIdAsync(id);
+                var updatedStatus = await _statusUseCase.GetStatusByIdAsync(statusId);
                 return Ok(updatedStatus);
             }
             catch (Exception ex)
@@ -144,16 +144,16 @@ namespace ClinAgenda.src.WebAPI.Controllers
             }
         }
 
-        [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> DeleteStatusAsync(int id)
+        [HttpDelete("delete/{statusId}")]
+        public async Task<IActionResult> DeleteStatusAsync(int statusId)
         {
             try
             {
-                var deleted = await _statusUseCase.DeleteStatusAsync(id);
+                var deleted = await _statusUseCase.DeleteStatusAsync(statusId);
 
                 if (!deleted)
                 {
-                    return NotFound($"Status com ID {id} não encontrado.");
+                    return NotFound($"Status com ID {statusId} não encontrado.");
                 }
 
                 return NoContent();

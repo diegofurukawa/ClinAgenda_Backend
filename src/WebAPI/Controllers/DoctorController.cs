@@ -56,16 +56,16 @@ namespace ClinAgenda.src.WebAPI.Controllers
         /// <summary>
         /// Obtém um médico por ID
         /// </summary>
-        [HttpGet("{id}")]
+        [HttpGet("{doctorId}")]
         [ProducesResponseType(typeof(DoctorDetailDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetDoctorById(int id)
+        public async Task<IActionResult> GetDoctorById(int doctorId)
         {
             try
             {
-                var doctor = await _doctorUseCase.GetDoctorByIdAsync(id);
-                if (doctor == null) return NotFound($"Médico com ID {id} não encontrado.");
+                var doctor = await _doctorUseCase.GetDoctorByIdAsync(doctorId);
+                if (doctor == null) return NotFound($"Médico com ID {doctorId} não encontrado.");
                 
                 return Ok(doctor);
             }
@@ -123,12 +123,12 @@ namespace ClinAgenda.src.WebAPI.Controllers
         /// <summary>
         /// Atualiza um médico existente
         /// </summary>
-        [HttpPut("{id}")]
+        [HttpPut("{doctorId}")]
         [ProducesResponseType(typeof(DoctorDetailDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> UpdateDoctor(int id, [FromBody] DoctorUpdateDTO doctor)
+        public async Task<IActionResult> UpdateDoctor(int doctorId, [FromBody] DoctorUpdateDTO doctor)
         {
             try
             {
@@ -148,10 +148,10 @@ namespace ClinAgenda.src.WebAPI.Controllers
                         : $"A especialidade com o ID {notFoundSpecialties.First()} não existe.");
                 }
 
-                bool updated = await _doctorUseCase.UpdateDoctorAsync(id, doctor);
-                if (!updated) return NotFound($"Médico com ID {id} não encontrado.");
+                bool updated = await _doctorUseCase.UpdateDoctorAsync(doctorId, doctor);
+                if (!updated) return NotFound($"Médico com ID {doctorId} não encontrado.");
 
-                var updatedDoctor = await _doctorUseCase.GetDoctorByIdAsync(id);
+                var updatedDoctor = await _doctorUseCase.GetDoctorByIdAsync(doctorId);
                 return Ok(updatedDoctor);
             }
             catch (ArgumentException ex)
@@ -167,22 +167,22 @@ namespace ClinAgenda.src.WebAPI.Controllers
         /// <summary>
         /// Ativa ou desativa um médico
         /// </summary>
-        [HttpPatch("{id}/toggle-active")]
+        [HttpPatch("toggle-active/{doctorId}")]
         [ProducesResponseType(typeof(DoctorDetailDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> ToggleDoctorActive(int id, [FromBody] DoctorToggleActiveDTO request)
+        public async Task<IActionResult> ToggleDoctorActive(int doctorId, [FromBody] DoctorToggleActiveDTO request)
         {
             try
             {
-                var toggled = await _doctorUseCase.ToggleDoctorActiveAsync(id, request.lActive);
+                var toggled = await _doctorUseCase.ToggleDoctorActiveAsync(doctorId, request.lActive);
 
                 if (!toggled)
                 {
-                    return NotFound($"Médico com ID {id} não encontrado.");
+                    return NotFound($"Médico com ID {doctorId} não encontrado.");
                 }
 
-                var updatedDoctor = await _doctorUseCase.GetDoctorByIdAsync(id);
+                var updatedDoctor = await _doctorUseCase.GetDoctorByIdAsync(doctorId);
                 return Ok(updatedDoctor);
             }
             catch (Exception ex)
@@ -224,19 +224,19 @@ namespace ClinAgenda.src.WebAPI.Controllers
         /// <summary>
         /// Exclui um médico
         /// </summary>
-        [HttpDelete("{id}")]
+        [HttpDelete("{doctorId}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> DeleteDoctor(int id)
+        public async Task<IActionResult> DeleteDoctor(int doctorId)
         {
             try
             {
-                var deleted = await _doctorUseCase.DeleteDoctorAsync(id);
+                var deleted = await _doctorUseCase.DeleteDoctorAsync(doctorId);
 
                 if (!deleted)
                 {
-                    return NotFound($"Médico com ID {id} não encontrado.");
+                    return NotFound($"Médico com ID {doctorId} não encontrado.");
                 }
 
                 return NoContent();
