@@ -86,12 +86,13 @@ namespace ClinAgenda.src.WebAPI.Controllers
                 
                 var createdPatient = await _patientUseCase.GetPatientByIdAsync(createdPatientId);
                 
-                return CreatedAtAction(nameof(GetPatientByIdAsync), new { patientid = createdPatientId }, createdPatient);
+                // return CreatedAtAction(nameof(GetPatientByIdAsync), new { patientid = createdPatientId }, createdPatient);
+                return Ok(createdPatient);
             }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            // catch (ArgumentException ex)
+            // {
+            //     return BadRequest(ex.Message);
+            // }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Erro interno do Servidor: {ex.Message}");

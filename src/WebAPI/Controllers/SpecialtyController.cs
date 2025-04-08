@@ -69,7 +69,8 @@ namespace ClinAgenda.src.WebAPI.Controllers
                 var createdSpecialtyId = await _specialtyUseCase.CreateSpecialtyAsync(specialty);
                 var createdSpecialty = await _specialtyUseCase.GetSpecialtyByIdAsync(createdSpecialtyId);
 
-                return CreatedAtAction(nameof(GetSpecialtyByIdAsync), new { id = createdSpecialtyId }, createdSpecialty);
+                // return CreatedAtAction(nameof(GetSpecialtyByIdAsync), new { id = createdSpecialtyId }, createdSpecialty);
+                return Ok(createdSpecialty);
             }
             catch (Exception ex)
             {
