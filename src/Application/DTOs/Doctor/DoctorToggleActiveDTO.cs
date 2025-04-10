@@ -7,6 +7,6 @@ namespace ClinAgenda.src.Application.DTOs.Doctor
     public class DoctorToggleActiveDTO
     {
         [Required]
-        public bool IsActive { get; set; }
+        public bool lActive { get; set; }
     }
 }

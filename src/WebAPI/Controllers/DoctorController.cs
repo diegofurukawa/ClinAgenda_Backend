@@ -153,7 +153,7 @@ namespace ClinAgenda.src.WebAPI.Controllers
                     });
                 }
 
-                var toggled = await _doctorUseCase.ToggleDoctorActiveAsync(doctorId, toggleDto.IsActive);
+                var toggled = await _doctorUseCase.ToggleDoctorActiveAsync(doctorId, toggleDto.lActive);
                 
                 if (!toggled)
                 {
@@ -192,7 +192,7 @@ namespace ClinAgenda.src.WebAPI.Controllers
                     });
                 }
 
-                var toggled = await _doctorUseCase.ToggleDoctorSpecialtyActiveAsync(doctorId, specialtyId, toggleDto.IsActive);
+                var toggled = await _doctorUseCase.ToggleDoctorSpecialtyActiveAsync(doctorId, specialtyId, toggleDto.lActive);
                 
                 if (!toggled)
                 {

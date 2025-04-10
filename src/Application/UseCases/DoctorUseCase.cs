@@ -21,7 +21,13 @@ namespace ClinAgenda.src.Application.DoctorUseCase
             _specialtyRepository = specialtyRepository;
         }
 
-        public async Task<DoctorResponseDTO> GetDoctorsAsync(string? doctorName, int? specialtyId, int? statusId, bool? lActive, int itemsPerPage, int page)
+        public async Task<DoctorResponseDTO> GetDoctorsAsync(
+            string? doctorName, 
+            int? specialtyId, 
+            int? statusId, 
+            bool? lActive, 
+            int itemsPerPage, 
+            int page)
         {
             int offset = (page - 1) * itemsPerPage;
 
@@ -107,7 +113,7 @@ namespace ClinAgenda.src.Application.DoctorUseCase
             var doctorToUpdate = new DoctorDTO
             {
                 DoctorId = id,
-                DoctorName = doctorDto.Name,
+                DoctorName = doctorDto.DoctorName,
                 StatusId = doctorDto.StatusId
             };
 

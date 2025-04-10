@@ -20,14 +20,15 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         }
         
         public async Task<(int total, IEnumerable<DoctorListDTO> doctors)> GetDoctorsAsync(
-            string? doctorName = null, 
-            int? specialtyId = null, 
-            int? statusId = null,
-            bool? lActive = null, 
-            int itemsPerPage = 10, 
-            int page = 1)
+            string? doctorName, 
+            int? specialtyId, 
+            int? statusId,
+            bool? lActive, 
+            int offset, 
+            int itemsPerPage
+            )
         {
-            int offset = (page - 1) * itemsPerPage;
+            // int offset = (page - 1) * itemsPerPage;
 
             var queryBase = new StringBuilder(@"
                 FROM doctor D
@@ -76,7 +77,8 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                     D.lActive
                 {queryBase}
                 ORDER BY D.doctorId
-                LIMIT @Limit OFFSET @Offset";
+                LIMIT @Limit OFFSET @Offset
+                ";
 
             var doctors = await _connection.QueryAsync<DoctorListDTO>(query, parameters);
 
