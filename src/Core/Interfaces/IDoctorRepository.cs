@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ClinAgenda.src.Application.DTOs.Doctor;
 
@@ -7,45 +8,23 @@ namespace ClinAgenda.src.Core.Interfaces
 {
     public interface IDoctorRepository
     {
-        /// <summary>
-        /// Obtém uma lista paginada de médicos com filtros opcionais
-        /// </summary>
-        Task<IEnumerable<DoctorListDTO>> GetDoctorsAsync(
-            string? DoctorName, 
-            int? specialtyId, 
-            int? statusId, 
-            bool? lActive,
-            int offset, 
-            int pageSize);
-            
-        /// <summary>
-        /// Obtém as especialidades de um conjunto de médicos
-        /// </summary>
-        Task<IEnumerable<DoctorSpecialtyDTO>> GetDoctorSpecialtyAsync(int[] doctorIds);
-        
-        /// <summary>
-        /// Insere um novo médico
-        /// </summary>
+        Task<(int total, IEnumerable<DoctorListDTO> doctors)> GetDoctorsAsync(string? doctorName, int? specialtyId, int? statusId, bool? lActive, int offset, int itemsPerPage); Task<IEnumerable<SpecialtyDoctorDTO>> GetDoctorSpecialtiesAsync(int[] doctorIds);
         Task<int> InsertDoctorAsync(DoctorInsertDTO doctor);
+        Task<IEnumerable<DoctorListDTO>> GetDoctorByIdAsync(int doctorId);
+        Task<bool> UpdateDoctorByIdAsync(DoctorDTO doctor);
+        Task<int> DeleteDoctorByIdAsync(int doctorId);
+        Task<bool> ToggleDoctorActiveAsync(int doctorId, bool active);
+
+        // Task<IEnumerable<SpecialtyDoctorDTO>> GetDoctorSpecialtiesAsync(int[] doctorIds);        
         
-        /// <summary>
-        /// Obtém um médico por ID
-        /// </summary>
-        Task<IEnumerable<DoctorListDTO>> GetDoctorByIdAsync(int id);
+        // Task<int> InsertDoctorAsync(DoctorInsertDTO doctor);
         
-        /// <summary>
-        /// Atualiza um médico existente
-        /// </summary>
-        Task<bool> UpdateDoctorAsync(int id, DoctorInsertDTO doctor);
+        // Task<IEnumerable<DoctorListDTO>> GetDoctorByIdAsync(int doctorId);
         
-        /// <summary>
-        /// Exclui um médico por ID
-        /// </summary>
-        Task<int> DeleteDoctorByIdAsync(int id);
+        // Task<bool> UpdateDoctorByAsync(DoctorDTO doctor);
         
-        /// <summary>
-        /// Ativa ou desativa um médico
-        /// </summary>
-        Task<int> ToggleDoctorActiveAsync(int id, bool active);
+        // Task<bool> ToggleDoctorActiveAsync(int doctorId, bool active);
+        
+        // Task<int> DeleteDoctorByIdAsync(int doctorId);
     }
 }

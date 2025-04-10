@@ -1,39 +1,43 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+
 using ClinAgenda.src.Application.DTOs.Doctor;
-using ClinAgenda.src.Application.DoctorUseCase;
+
+using ClinAgenda.src.Application.AppointmentUseCase;
 using ClinAgenda.src.Application.SpecialtyUseCase;
 using ClinAgenda.src.Application.StatusUseCase;
+using ClinAgenda.src.Application.DoctorUseCase;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ClinAgenda.src.WebAPI.Controllers
 {
     [ApiController]
-    [Route("api/Doctor")]
+    [Route("api/doctor")]
     public class DoctorController : ControllerBase
     {
         private readonly DoctorUseCase _doctorUseCase;
         private readonly StatusUseCase _statusUseCase;
         private readonly SpecialtyUseCase _specialtyUseCase;
+        private readonly AppointmentUseCase _appointmentUseCase;
 
-        public DoctorController(
-            DoctorUseCase doctorUseCase, 
-            StatusUseCase statusUseCase, 
-            SpecialtyUseCase specialtyUseCase)
+        public DoctorController(DoctorUseCase doctorUseCase, StatusUseCase statusUseCase, SpecialtyUseCase specialtyUseCase, AppointmentUseCase appointmentUseCase)
         {
             _doctorUseCase = doctorUseCase;
             _statusUseCase = statusUseCase;
             _specialtyUseCase = specialtyUseCase;
+            _appointmentUseCase = appointmentUseCase;
         }
-        
         [HttpGet("list")]
-        public async Task<IActionResult> GetDoctorsAsync(
+        public async Task<IActionResult> GetDoctors(
             [FromQuery] string? doctorName, 
             [FromQuery] int? specialtyId, 
-            [FromQuery] int? statusId,
-            [FromQuery] bool? lActive,
+            [FromQuery] int? statusId, 
+            [FromQuery] bool? lActive, 
             [FromQuery] int itemsPerPage = 10, 
-            [FromQuery] int page = 1)
+            [FromQuery] int page = 1
+            )
         {
             try
             {
@@ -45,168 +49,168 @@ namespace ClinAgenda.src.WebAPI.Controllers
                 return StatusCode(500, $"Erro interno do servidor: {ex.Message}");
             }
         }
-        
-        [HttpGet("listById/{doctorId}")]
-        public async Task<IActionResult> GetDoctorByIdAsync(int doctorId)
-        {
-            try
-            {
-                var doctor = await _doctorUseCase.GetDoctorByIdAsync(doctorId);
-                if (doctor == null) return NotFound($"Médico com ID {doctorId} não encontrado.");
-                
-                return Ok(doctor);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Erro interno do servidor: {ex.Message}");
-            }
-        }
-
         [HttpPost("insert")]
-        public async Task<IActionResult> CreateDoctorAsync([FromBody] DoctorCreateDTO doctor)
+        public async Task<IActionResult> CreateDoctorAsync([FromBody] DoctorInsertDTO doctor)
         {
             try
             {
-                // Verificar se o status existe
                 var hasStatus = await _statusUseCase.GetStatusByIdAsync(doctor.StatusId);
                 if (hasStatus == null)
                     return BadRequest($"O status com ID {doctor.StatusId} não existe.");
 
-                // Verificar se todas as especialidades existem
-                var specialties = await _specialtyUseCase.GetSpecialtiesByIdsAsync(doctor.SpecialtyIds);
-                var notFoundSpecialties = doctor.SpecialtyIds.Except(specialties.Select(s => s.SpecialtyId)).ToList();
+                var specialties = await _specialtyUseCase.GetSpecialtiesByIds(doctor.Specialty);
+
+                var notFoundSpecialties = doctor.Specialty.Except(specialties.Select(s => s.SpecialtyId)).ToList();
 
                 if (notFoundSpecialties.Any())
                 {
-                    return BadRequest(notFoundSpecialties.Count > 1 
-                        ? $"As especialidades com os IDs {string.Join(", ", notFoundSpecialties)} não existem." 
-                        : $"A especialidade com o ID {notFoundSpecialties.First()} não existe.");
+                    return BadRequest(notFoundSpecialties.Count > 1 ? $"As especialidades com os IDs {string.Join(", ", notFoundSpecialties)} não existem." : $"A especialidade com o ID {notFoundSpecialties.First().ToString()} não existe.");
                 }
 
                 var createdDoctorId = await _doctorUseCase.CreateDoctorAsync(doctor);
-                if (createdDoctorId <= 0)
-                {
-                    return StatusCode(500, "Erro ao criar o médico.");
-                }
-                
-                var createdDoctor = await _doctorUseCase.GetDoctorByIdAsync(createdDoctorId);
-                
-                // return CreatedAtAction(nameof(GetDoctorByIdAsync), new { doctorId = createdDoctorId }, createdDoctor);
-                return Ok(createdDoctor);
+
+                var ifosDoctor = await _doctorUseCase.GetDoctorByIdAsync(createdDoctorId);
+
+                return Ok(ifosDoctor);
             }
-            // catch (ArgumentException ex)
-            // {
-            //     return BadRequest(ex.Message);
-            // }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Erro interno do servidor: {ex.Message}");
             }
         }
-
         [HttpPut("update/{doctorId}")]
-        public async Task<IActionResult> UpdateDoctorAsync(int doctorId, [FromBody] DoctorUpdateDTO doctor)
+        public async Task<IActionResult> UpdateDoctorAsync(int doctorId, [FromBody] DoctorInsertDTO doctor)
         {
-            try
+            if (doctor == null) return BadRequest();
+
+            var hasStatus = await _statusUseCase.GetStatusByIdAsync(doctor.StatusId);
+            if (hasStatus == null)
+                return BadRequest($"O status com ID {doctor.StatusId} não existe.");
+
+            var specialties = await _specialtyUseCase.GetSpecialtiesByIds(doctor.Specialty);
+
+            var notFoundSpecialties = doctor.Specialty.Except(specialties.Select(s => s.SpecialtyId)).ToList();
+
+            if (notFoundSpecialties.Any())
             {
-                // Verificar se o status existe
-                var hasStatus = await _statusUseCase.GetStatusByIdAsync(doctor.StatusId);
-                if (hasStatus == null)
-                    return BadRequest($"O status com ID {doctor.StatusId} não existe.");
-
-                // Verificar se todas as especialidades existem
-                var specialties = await _specialtyUseCase.GetSpecialtiesByIdsAsync(doctor.SpecialtyIds);
-                var notFoundSpecialties = doctor.SpecialtyIds.Except(specialties.Select(s => s.SpecialtyId)).ToList();
-
-                if (notFoundSpecialties.Any())
-                {
-                    return BadRequest(notFoundSpecialties.Count > 1 
-                        ? $"As especialidades com os IDs {string.Join(", ", notFoundSpecialties)} não existem." 
-                        : $"A especialidade com o ID {notFoundSpecialties.First()} não existe.");
-                }
-
-                bool updated = await _doctorUseCase.UpdateDoctorAsync(doctorId, doctor);
-                if (!updated)
-                {
-                    return NotFound($"Médico com ID {doctorId} não encontrado ou não foi possível atualizar.");
-                }
-
-                var updatedDoctor = await _doctorUseCase.GetDoctorByIdAsync(doctorId);
-                return Ok(updatedDoctor);
+                return BadRequest(notFoundSpecialties.Count > 1 ? $"As especialidades com os IDs {string.Join(", ", notFoundSpecialties)} não existem." : $"A especialidade com o ID {notFoundSpecialties.First().ToString()} não existe.");
             }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Erro ao atualizar médico: {ex.Message}");
-            }
+
+            bool updated = await _doctorUseCase.UpdateDoctorAsync(doctorId, doctor);
+
+            if (!updated) return NotFound("Doutor não encontrado.");
+
+            var infosDoctorUpdate = await _doctorUseCase.GetDoctorByIdAsync(doctorId);
+            return Ok(infosDoctorUpdate);
+
         }
-
-        [HttpPatch("toggle-active/{doctorId}")]
-        public async Task<IActionResult> ToggleDoctorActiveAsync(int doctorId, [FromQuery] bool active)
+        [HttpGet("listById/{doctorId}")]
+        public async Task<IActionResult> GetDoctorByIdAsync(int doctorId)
         {
-            try
-            {
-                var toggled = await _doctorUseCase.ToggleDoctorActiveAsync(doctorId, active);
-
-                if (!toggled)
-                {
-                    return NotFound($"Médico com ID {doctorId} não encontrado.");
-                }
-
-                var updatedDoctor = await _doctorUseCase.GetDoctorByIdAsync(doctorId);
-                return Ok(updatedDoctor);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Erro ao alterar estado ativo do médico: {ex.Message}");
-            }
+            var doctor = await _doctorUseCase.GetDoctorByIdAsync(doctorId);
+            if (doctor == null) return NotFound();
+            return Ok(doctor);
         }
-
-        [HttpPatch("specialties/{doctorId}/{specialtyId}/toggle-active")]
-        public async Task<IActionResult> ToggleDoctorSpecialtyActiveAsync(
-            int doctorId,
-            int specialtyId,
-            [FromQuery] bool active)
-        {
-            try
-            {
-                var toggled = await _doctorUseCase.ToggleDoctorSpecialtyActiveAsync(doctorId, specialtyId, active);
-
-                if (!toggled)
-                {
-                    return NotFound($"Relacionamento entre médico ID {doctorId} e especialidade ID {specialtyId} não encontrado.");
-                }
-
-                var updatedDoctor = await _doctorUseCase.GetDoctorByIdAsync(doctorId);
-                return Ok(updatedDoctor);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Erro ao alterar estado ativo da especialidade do médico: {ex.Message}");
-            }
-        }
-
         [HttpDelete("delete/{doctorId}")]
         public async Task<IActionResult> DeleteDoctorAsync(int doctorId)
         {
             try
             {
-                var deleted = await _doctorUseCase.DeleteDoctorAsync(doctorId);
-                
-                if (!deleted)
+                var doctorInfo = await _doctorUseCase.GetDoctorByIdAsync(doctorId);
+
+                var appointment = await _appointmentUseCase.GetAppointmentsAsync(doctorName: doctorInfo.DoctorName, null, null, null, null, null,null, null, 1, 1);
+
+                if (((dynamic)appointment).Total > 0)
+                    return NotFound($"Erro ao deletar, Doutor com agendamento marcado");
+
+                var success = await _doctorUseCase.DeleteDoctorByIdAsync(doctorId);
+
+                if (!success)
                 {
-                    return NotFound($"Médico com ID {doctorId} não encontrado ou não foi possível excluir.");
+                    return NotFound($"Doutor com ID {doctorId} não encontrado.");
                 }
+
+                return Ok("Doutor deletado com sucesso");
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPatch("{doctorId}/toggle-active")]
+        public async Task<IActionResult> ToggleDoctorActive(int doctorId, [FromBody] DoctorToggleActiveDTO toggleDto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new ProblemDetails
+                    {
+                        Status = 400,
+                        Title = "Validation Failed",
+                        Detail = "Invalid active status data."
+                    });
+                }
+
+                var toggled = await _doctorUseCase.ToggleDoctorActiveAsync(doctorId, toggleDto.IsActive);
                 
-                return NoContent();
+                if (!toggled)
+                {
+                    return NotFound(new ProblemDetails
+                    {
+                        Status = 404,
+                        Title = "Not Found",
+                        Detail = $"Doctor with ID {doctorId} was not found."
+                    });
+                }
+
+                var updatedDoctor = await _doctorUseCase.GetDoctorByIdAsync(doctorId);
+                return Ok(updatedDoctor);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Erro ao excluir médico: {ex.Message}");
+                return StatusCode(500, $"Erro interno do servidor: {ex.Message}");
             }
         }
+        
+        [HttpPatch("{doctorId}/specialties/{specialtyId}/toggle-active")]
+        public async Task<IActionResult> ToggleDoctorSpecialtyActive(
+            int doctorId, 
+            int specialtyId, 
+            [FromBody] DoctorToggleActiveDTO toggleDto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new ProblemDetails
+                    {
+                        Status = 400,
+                        Title = "Validation Failed",
+                        Detail = "Invalid active status data."
+                    });
+                }
+
+                var toggled = await _doctorUseCase.ToggleDoctorSpecialtyActiveAsync(doctorId, specialtyId, toggleDto.IsActive);
+                
+                if (!toggled)
+                {
+                    return NotFound(new ProblemDetails
+                    {
+                        Status = 404,
+                        Title = "Not Found",
+                        Detail = $"Doctor with ID {doctorId} or specialty with ID {specialtyId} was not found."
+                    });
+                }
+
+                var updatedDoctor = await _doctorUseCase.GetDoctorByIdAsync(doctorId);
+                return Ok(updatedDoctor);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro interno do servidor: {ex.Message}");
+            }
+        }        
     }
 }

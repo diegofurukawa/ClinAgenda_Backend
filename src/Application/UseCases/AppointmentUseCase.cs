@@ -34,7 +34,8 @@ namespace ClinAgenda.src.Application.AppointmentUseCase
         }
 
         public async Task<object> GetAppointmentsAsync(
-            int? patientId = null, 
+            string? doctorName = null,
+            int? patientId = null,
             int? doctorId = null, 
             int? specialtyId = null,
             int? statusId = null,
@@ -45,6 +46,7 @@ namespace ClinAgenda.src.Application.AppointmentUseCase
             int page = 1)
         {
             var (total, rawData) = await _appointmentRepository.GetAllAppointmentsAsync(
+                doctorName,
                 patientId,
                 doctorId,
                 specialtyId,
@@ -98,7 +100,7 @@ namespace ClinAgenda.src.Application.AppointmentUseCase
                     {
                         id = specialty?.SpecialtyId,
                         name = specialty?.SpecialtyName,
-                        scheduleDuration = specialty?.NScheduleDuration
+                        scheduleDuration = specialty?.nScheduleDuration
                     },
                     status = new
                     {
@@ -167,16 +169,17 @@ namespace ClinAgenda.src.Application.AppointmentUseCase
             }
 
             // Verificar se o médico atende a especialidade solicitada
-            var doctorSpecialties = await _doctorRepository.GetDoctorSpecialtyAsync(new[] { appointmentDTO.DoctorId });
-            bool hasSpecialty = doctorSpecialties.Any(ds => ds.SpecialtyId == appointmentDTO.SpecialtyId);
+            // var doctorSpecialties = await _doctorRepository.GetDoctorSpecialtyAsync(new[] { appointmentDTO.DoctorId });
+
+            // bool hasSpecialty = doctorSpecialties.Any(ds => ds.SpecialtyId == appointmentDTO.SpecialtyId);
             
-            if (!hasSpecialty)
-            {
-                throw new ArgumentException($"O médico com ID {appointmentDTO.DoctorId} não atende a especialidade com ID {appointmentDTO.SpecialtyId}.");
-            }
+            // if (!hasSpecialty)
+            // {
+            //     throw new ArgumentException($"O médico com ID {appointmentDTO.DoctorId} não atende a especialidade com ID {appointmentDTO.SpecialtyId}.");
+            // }
 
             // Verificar conflitos de horários
-            DateTime endTime = appointmentDTO.DAppointmentDate.AddMinutes(specialty.NScheduleDuration);
+            DateTime endTime = appointmentDTO.DAppointmentDate.AddMinutes(specialty.nScheduleDuration);
             bool hasConflict = await _appointmentRepository.CheckConflictingAppointmentsAsync(
                 appointmentDTO.DoctorId,
                 null,
@@ -250,16 +253,16 @@ namespace ClinAgenda.src.Application.AppointmentUseCase
             }
 
             // Verificar se o médico atende a especialidade solicitada
-            var doctorSpecialties = await _doctorRepository.GetDoctorSpecialtyAsync(new[] { appointmentDTO.DoctorId });
-            bool hasSpecialty = doctorSpecialties.Any(ds => ds.SpecialtyId == appointmentDTO.SpecialtyId);
+            // var doctorSpecialties = await _doctorRepository.GetDoctorSpecialtyAsync(new[] { appointmentDTO.DoctorId });
+            // bool hasSpecialty = doctorSpecialties.Any(ds => ds.SpecialtyId == appointmentDTO.SpecialtyId);
             
-            if (!hasSpecialty)
-            {
-                throw new ArgumentException($"O médico com ID {appointmentDTO.DoctorId} não atende a especialidade com ID {appointmentDTO.SpecialtyId}.");
-            }
+            // if (!hasSpecialty)
+            // {
+            //     throw new ArgumentException($"O médico com ID {appointmentDTO.DoctorId} não atende a especialidade com ID {appointmentDTO.SpecialtyId}.");
+            // }
 
             // Verificar conflitos de horários (excluindo o próprio agendamento)
-            DateTime endTime = appointmentDTO.DAppointmentDate.AddMinutes(specialty.NScheduleDuration);
+            DateTime endTime = appointmentDTO.DAppointmentDate.AddMinutes(specialty.nScheduleDuration);
             bool hasConflict = await _appointmentRepository.CheckConflictingAppointmentsAsync(
                 appointmentDTO.DoctorId,
                 id,
@@ -335,15 +338,15 @@ namespace ClinAgenda.src.Application.AppointmentUseCase
                         DoctorId = appointment.DoctorId,
                         DoctorName = appointment.DoctorName,
                         StatusId = 0, // Seria preenchido com dados reais
-                        dCreated = appointment.DCreated,
-                        dLastUpdated = appointment.DLastUpdated,
-                        lActive = true
+                        // dCreated = appointment.DCreated,
+                        // dLastUpdated = appointment.DLastUpdated,
+                        // lActive = true
                     },
                     Specialty = specialty ?? new SpecialtyDTO
                     {
                         SpecialtyId = appointment.SpecialtyId,
                         SpecialtyName = appointment.SpecialtyName,
-                        NScheduleDuration = 30, // Valor padrão
+                        nScheduleDuration = 30, // Valor padrão
                         DCreated = appointment.DCreated,
                         DLastUpdated = appointment.DLastUpdated,
                         LActive = true

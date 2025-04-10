@@ -10,7 +10,7 @@ namespace ClinAgenda.src.Application.DTOs.Status
     {
         public int StatusId { get; set; }
         public required string StatusName { get; set; }
-        public required string StatusType { get; set; }
+        public string StatusType { get; set; }
         public DateTime DCreated { get; set; }
         public DateTime? DLastUpdated { get; set; }
         public bool LActive { get; set; }

@@ -8,32 +8,22 @@ namespace ClinAgenda.src.Core.Interfaces
     public interface IDoctorSpecialtyRepository
     {
         /// <summary>
-        /// Insere relacionamentos entre médico e especialidades
+        /// Inserts relationships between a doctor and multiple specialties
         /// </summary>
         Task InsertAsync(DoctorSpecialtyDTO doctorSpecialtyDTO);
         
         /// <summary>
-        /// Exclui todos os relacionamentos de um médico
+        /// Deletes all specialty relationships for a doctor
         /// </summary>
         Task DeleteByDoctorIdAsync(int doctorId);
         
         /// <summary>
-        /// Obtém todas as especialidades de um médico
-        /// </summary>
-        Task<IEnumerable<DoctorSpecialtyDetailDTO>> GetByDoctorIdAsync(int doctorId);
-        
-        /// <summary>
-        /// Obtém todos os médicos que possuem uma determinada especialidade
-        /// </summary>
-        Task<IEnumerable<DoctorSpecialtyDetailDTO>> GetBySpecialtyIdAsync(int specialtyId);
-        
-        /// <summary>
-        /// Ativa ou desativa uma especialidade de um médico
+        /// Activates or deactivates a specialty for a doctor
         /// </summary>
         Task<bool> ToggleActiveAsync(int doctorId, int specialtyId, bool active);
         
         /// <summary>
-        /// Verifica se existe o relacionamento entre médico e especialidade
+        /// Checks if a relationship exists between a doctor and specialty
         /// </summary>
         Task<bool> ExistsAsync(int doctorId, int specialtyId);
     }

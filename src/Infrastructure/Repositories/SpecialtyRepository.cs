@@ -146,5 +146,20 @@ namespace ClinAgenda.src.Infrastructure.Repositories
 
             return rowsAffected;
         }
+
+        public async Task<IEnumerable<SpecialtyDTO>> GetSpecialtiesByIds(List<int> specialtiesId)
+        {
+            var query = @"
+                select 
+                    s.SpecialtyId, 
+                    s.SpecialtyName,
+                    s.nscheduleduration 
+                from specialty s
+                where s.SpecialtyId in @specialtiesid";
+
+            var parameters = new { SpecialtiesID = specialtiesId };
+
+            return await _connection.QueryAsync<SpecialtyDTO>(query, parameters);
+        }
     }
 }

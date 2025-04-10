@@ -43,6 +43,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         }
         
         public async Task<(int total, IEnumerable<AppointmentListDTO> appointments)> GetAllAppointmentsAsync(
+            string? doctorName = null, 
             int? patientId = null, 
             int? doctorId = null, 
             int? specialtyId = null,

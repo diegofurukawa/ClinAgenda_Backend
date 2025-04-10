@@ -36,6 +36,7 @@ namespace ClinAgenda.src.WebAPI.Controllers
 
         [HttpGet("list")]
         public async Task<IActionResult> GetAppointmentsAsync(
+            [FromQuery] string? doctorName,
             [FromQuery] int? patientId, 
             [FromQuery] int? doctorId, 
             [FromQuery] int? specialtyId,
@@ -49,6 +50,7 @@ namespace ClinAgenda.src.WebAPI.Controllers
             try
             {
                 var result = await _appointmentUseCase.GetAppointmentsAsync(
+                    doctorName,
                     patientId,
                     doctorId,
                     specialtyId,

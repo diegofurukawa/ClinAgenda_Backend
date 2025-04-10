@@ -11,7 +11,8 @@ namespace ClinAgenda.src.Core.Interfaces
         Task<AppointmentDTO> GetAppointmentByIdAsync(int id);
         
         Task<(int total, IEnumerable<AppointmentListDTO> appointments)> GetAllAppointmentsAsync(
-            int? patientId = null, 
+            string? doctorName = null,
+            int? patientId = null,
             int? doctorId = null, 
             int? specialtyId = null,
             int? statusId = null,

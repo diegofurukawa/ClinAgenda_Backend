@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ClinAgenda.src.Application.DTOs.Doctor;
@@ -18,253 +19,160 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             _connection = connection;
         }
         
-        public async Task<IEnumerable<DoctorListDTO>> GetDoctorsAsync(
-            string? doctorName, 
-            int? specialtyId, 
-            int? statusId,
-            bool? isActive,
-            int offset, 
-            int pageSize)
+        public async Task<(int total, IEnumerable<DoctorListDTO> doctors)> GetDoctorsAsync(
+            string? doctorName = null, 
+            int? specialtyId = null, 
+            int? statusId = null,
+            bool? lActive = null, 
+            int itemsPerPage = 10, 
+            int page = 1)
         {
-            var innerJoins = new StringBuilder(@"
-                from doctor d
-                inner join status s on d.statusid = s.statusid
-                inner join doctor_specialty dspe on dspe.doctorid = d.doctorid
-                where 1 = 1 ");
+            int offset = (page - 1) * itemsPerPage;
+
+            var queryBase = new StringBuilder(@"
+                FROM doctor D
+                LEFT JOIN status S ON S.statusId = D.statusId
+                LEFT JOIN doctor_specialty DS ON DS.doctorId = D.doctorId
+                WHERE 1 = 1");
 
             var parameters = new DynamicParameters();
 
             if (!string.IsNullOrEmpty(doctorName))
             {
-                innerJoins.Append(" AND d.doctorName LIKE @doctorName");
+                queryBase.Append(" AND D.doctorName LIKE @DoctorName");
                 parameters.Add("doctorName", $"%{doctorName}%");
             }
 
             if (specialtyId.HasValue)
             {
-                innerJoins.Append(" AND dspe.SPECIALTYID = @SpecialtyId");
+                queryBase.Append(" AND DS.specialtyId = @SpecialtyId");
                 parameters.Add("SpecialtyId", specialtyId.Value);
             }
 
             if (statusId.HasValue)
             {
-                innerJoins.Append(" AND s.StatusId = @StatusId");
+                queryBase.Append(" AND D.statusId = @StatusId");
                 parameters.Add("StatusId", statusId.Value);
             }
             
-            if (isActive.HasValue)
+            if (lActive.HasValue)
             {
-                innerJoins.Append(" AND d.lActive = @IsActive");
-                parameters.Add("IsActive", isActive.Value);
+                queryBase.Append(" AND D.lActive = @LActive");
+                parameters.Add("LActive", lActive.Value);
             }
 
-            parameters.Add("Limit", pageSize);
+            var countQuery = $"SELECT COUNT(DISTINCT D.doctorId) {queryBase}";
+            int total = await _connection.ExecuteScalarAsync<int>(countQuery, parameters);
+            
+            parameters.Add("Limit", itemsPerPage);
             parameters.Add("Offset", offset);
 
             var query = $@"
-                select distinct
-                    d.doctorid,
-                    d.doctorname,
-                    s.statusid,
-                    s.statusname,
-                    d.dcreated as dcreated,
-                    d.dlastupdated as dlastupdated,
-                    d.lactive as lactive
-                {innerJoins}
-                ORDER BY d.doctorid
+                SELECT DISTINCT
+                    D.doctorId,
+                    D.doctorName,
+                    S.statusId,
+                    S.statusName,
+                    D.lActive
+                {queryBase}
+                ORDER BY D.doctorId
                 LIMIT @Limit OFFSET @Offset";
 
-            return await _connection.QueryAsync<DoctorListDTO>(query.ToString(), parameters);
+            var doctors = await _connection.QueryAsync<DoctorListDTO>(query, parameters);
+
+            return (total, doctors);
         }
 
-        public async Task<IEnumerable<DoctorSpecialtyDTO>> GetDoctorSpecialtyAsync(int[] doctorIds)
+        public async Task<IEnumerable<SpecialtyDoctorDTO>> GetDoctorSpecialtiesAsync(int[] doctorIds)
         {
             var query = @"
-                select 
-                    ds.doctorid,
-                    sp.specialtyid,
-                    sp.specialtyname,
-                    sp.nscheduleduration,
-                    sp.dcreated,
-                    sp.dlastupdated,
-                    sp.lactive
-                from doctor_specialty ds
-                inner join specialty sp on ds.specialtyid = sp.specialtyid
-                where ds.doctorid in @doctorids";
+                SELECT 
+                    DS.doctorId,
+                    SP.specialtyId,
+                    SP.specialtyName,
+                    SP.nScheduleDuration,
+                    DS.lActive
+                FROM doctor_specialty DS
+                INNER JOIN specialty SP ON DS.specialtyId = SP.specialtyId
+                WHERE DS.doctorId IN @DoctorIds";
 
             var parameters = new { DoctorIds = doctorIds };
 
-            return await _connection.QueryAsync<DoctorSpecialtyDTO>(query, parameters);
+            return await _connection.QueryAsync<SpecialtyDoctorDTO>(query, parameters);
         }
         
         public async Task<int> InsertDoctorAsync(DoctorInsertDTO doctor)
         {
             string query = @"
-            insert into doctor (
-                doctorname, 
-                statusid, 
-                dcreated, 
-                lactive
+            INSERT INTO doctor (
+                doctorName, 
+                statusId, 
+                dCreated, 
+                lActive
             ) 
             VALUES (
                 @DoctorName, 
                 @StatusId, 
-                NOW(), 
-                @LActive
+                NOW(),
+                1
             );
             SELECT LAST_INSERT_ID();";
-            
-            int newDoctorId = await _connection.ExecuteScalarAsync<int>(query, doctor);
-
-            // Inserir especialidades para o novo médico
-            if (doctor.Specialty != null && doctor.Specialty.Count > 0)
-            {
-                var specialtyInserts = new List<dynamic>();
-                foreach (var specialtyId in doctor.Specialty)
-                {
-                    specialtyInserts.Add(new
-                    {
-                        DoctorId = newDoctorId,
-                        SpecialtyId = specialtyId,
-                        LActive = true
-                    });
-                }
-
-                string specialtyQuery = @"
-                insert into doctor_specialty (
-                    doctorid,
-                    specialtyid,
-                    dcreated,
-                    lactive
-                ) values (
-                    @DoctorId,
-                    @SpecialtyId,
-                    NOW(),
-                    @LActive
-                )";
-
-                await _connection.ExecuteAsync(specialtyQuery, specialtyInserts);
-            }
-
-            return newDoctorId;
+                    
+            return await _connection.ExecuteScalarAsync<int>(query, doctor);
         }
         
-        public async Task<IEnumerable<DoctorListDTO>> GetDoctorByIdAsync(int doctorid)
+        public async Task<IEnumerable<DoctorListDTO>> GetDoctorByIdAsync(int doctorId)
         {
-            var queryBase = new StringBuilder(@"
-                    from doctor d
-                left join doctor_specialty dspe on d.doctorid = dspe.doctorid
-                left join status s on s.statusid = d.statusid
-                left join specialty sp on sp.specialtyid = dspe.specialtyid
-                    where 1 = 1");
+            var query = @"
+                SELECT 
+                    D.doctorId,
+                    D.doctorName,
+                    D.statusId,
+                    S.statusName,
+                    D.lActive
+                FROM doctor D
+                LEFT JOIN status S ON S.statusId = D.statusId
+                WHERE D.doctorId = @DoctorId";
 
-            var parameters = new DynamicParameters();
+            var parameters = new { DoctorId = doctorId };
 
-            if (doctorid > 0)
-            {
-                queryBase.Append(" AND d.doctorId = @DoctorId");
-                parameters.Add("DoctorId", doctorid);
-            }
-
-            var dataQuery = $@"
-        select distinct
-            d.doctorid, 
-            d.doctorname, 
-            d.statusid, 
-            s.statusname,
-            dspe.specialtyid,
-            sp.specialtyname,
-            sp.nscheduleduration,
-            d.dcreated,
-            d.dlastupdated,
-            d.lactive
-        {queryBase}
-        ORDER BY d.doctorid";
-
-            var doctors = await _connection.QueryAsync<DoctorListDTO>(dataQuery, parameters);
-
-            return doctors;
+            return await _connection.QueryAsync<DoctorListDTO>(query, parameters);
         }
         
-        public async Task<bool> UpdateDoctorAsync(int doctorid, DoctorInsertDTO doctor)
-        {
-            // Atualizar dados básicos do médico
-            string query = @"
-            update doctor set 
-                doctorname = @doctorname,
-                statusid = @statusid,
-                dlastupdated = now(),
-                lactive = @LActive
-            WHERE DoctorId = @DoctorId";
-            
-            var parameters = new DynamicParameters(doctor);
-            parameters.Add("DoctorId", doctorid);
-            
-            int rowsAffected = await _connection.ExecuteAsync(query, parameters);
-            
-            if (rowsAffected <= 0)
-                return false;
-
-            // Remover especialidades existentes
-            await _connection.ExecuteAsync(
-                "delete from doctor_specialty where doctorid = @DoctorId", 
-                new { DoctorId = doctorid });
-
-            // Adicionar novas especialidades
-            if (doctor.Specialty != null && doctor.Specialty.Count > 0)
-            {
-                var specialtyInserts = new List<dynamic>();
-                foreach (var specialtyId in doctor.Specialty)
-                {
-                    specialtyInserts.Add(new
-                    {
-                        DoctorId = doctorid,
-                        SpecialtyId = specialtyId,
-                        LActive = true
-                    });
-                }
-
-                string specialtyQuery = @"
-                insert into doctor_specialty (
-                    doctorid,
-                    specialtyid,
-                    dcreated,
-                    lactive
-                ) values (
-                    @DoctorId,
-                    @SpecialtyId,
-                    NOW(),
-                    @LActive
-                )";
-
-                await _connection.ExecuteAsync(specialtyQuery, specialtyInserts);
-            }
-            
-            return true;
-        }
-        
-        public async Task<int> DeleteDoctorByIdAsync(int doctorid)
-        {
-            // Primeiro excluir as relações de especialidade
-            await _connection.ExecuteAsync(
-                "delete from doctor_specialty where doctorid = @DoctorId", 
-                new { DoctorId = doctorid });
-                
-            // Então excluir o médico
-            string query = "delete from doctor where doctorid = @DoctorId";
-            var parameters = new { DoctorId = doctorid };
-            return await _connection.ExecuteAsync(query, parameters);
-        }
-        
-        public async Task<int> ToggleDoctorActiveAsync(int doctorid, bool active)
+        public async Task<bool> UpdateDoctorByIdAsync(DoctorDTO doctor)
         {
             string query = @"
             UPDATE doctor SET 
+                doctorName = @DoctorName,
+                statusId = @StatusId,
+                dLastUpdated = NOW()
+            WHERE doctorId = @DoctorId";
+            
+            int rowsAffected = await _connection.ExecuteAsync(query, doctor);
+            return rowsAffected > 0;
+        }
+        
+        public async Task<bool> ToggleDoctorActiveAsync(int doctorId, bool active)
+        {
+            string query = @"
+            UPDATE doctor 
+            SET 
                 lActive = @Active,
-                dlastupdated = NOW()
-            WHERE DoctorId = @DoctorId";
+                dLastUpdated = NOW()
+            WHERE doctorId = @DoctorId";
 
-            var parameters = new { DoctorId = doctorid, Active = active };
+            var parameters = new { DoctorId = doctorId, Active = active };
+            
+            int rowsAffected = await _connection.ExecuteAsync(query, parameters);
+            return rowsAffected > 0;
+        }
+        
+        public async Task<int> DeleteDoctorByIdAsync(int doctorId)
+        {
+            string query = "DELETE FROM doctor WHERE doctorId = @DoctorId";
+
+            var parameters = new { DoctorId = doctorId };
+
             return await _connection.ExecuteAsync(query, parameters);
         }
     }

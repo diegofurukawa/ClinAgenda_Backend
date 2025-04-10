@@ -126,5 +126,10 @@ namespace ClinAgenda.src.Application.SpecialtyUseCase
             
             return specialties;
         }
+
+        public async Task<IEnumerable<SpecialtyDTO>> GetSpecialtiesByIds(List<int> id)
+        {
+            return await _specialtyRepository.GetSpecialtiesByIds(id);
+        }        
     }
 }

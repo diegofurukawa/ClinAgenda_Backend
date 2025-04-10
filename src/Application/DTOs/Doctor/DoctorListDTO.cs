@@ -5,9 +5,6 @@ using System.Threading.Tasks;
 
 namespace ClinAgenda.src.Application.DTOs.Doctor
 {
-    /// <summary>
-    /// DTO de compatibilidade para lista de médicos
-    /// </summary>
     public class DoctorListDTO
     {
         public int DoctorId { get; set; }
@@ -17,8 +14,6 @@ namespace ClinAgenda.src.Application.DTOs.Doctor
         public int SpecialtyId { get; set; }
         public required string SpecialtyName { get; set; }
         public int nScheduleDuration { get; set; }
-        public DateTime dCreated { get; set; }
-        public DateTime? dLastUpdated { get; set; }
         public bool lActive { get; set; }
     }
 }

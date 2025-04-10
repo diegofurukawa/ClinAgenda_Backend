@@ -19,5 +19,6 @@ namespace ClinAgenda.src.Core.Interfaces
             int? page = 1);
         Task<int> UpdateSpecialtyAsync(int id, SpecialtyInsertDTO specialtyInsertDTO);
         Task<int> ToggleSpecialtyActiveAsync(int id, bool active);
+        Task<IEnumerable<SpecialtyDTO>> GetSpecialtiesByIds(List<int> specialtiesId);
     }
 }

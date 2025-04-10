@@ -27,20 +27,15 @@
 │   │   │   │   ├── UserLoginDTO.cs
 │   │   │   │   └── UserRegistrationDTO.cs
 │   │   │   ├── Doctor
-│   │   │   │   ├── DoctorCreateDTO.cs
-│   │   │   │   ├── DoctorDetailDTO.cs
 │   │   │   │   ├── DoctorDTO.cs
 │   │   │   │   ├── DoctorInsertDTO.cs
 │   │   │   │   ├── DoctorListDTO.cs
-│   │   │   │   ├── DoctorListItemDTO.cs
-│   │   │   │   ├── DoctorPagedResultDTO.cs
+│   │   │   │   ├── DoctorListReturnDTO.cs
 │   │   │   │   ├── DoctorResponseDTO.cs
-│   │   │   │   ├── DoctorSpecialtyDetailDTO.cs
+│   │   │   │   ├── DoctorReturnAppointmentDTO.cs
 │   │   │   │   ├── DoctorSpecialtyDTO.cs
-│   │   │   │   ├── DoctorSpecialtyResponseDTO.cs
 │   │   │   │   ├── DoctorToggleActiveDTO.cs
-│   │   │   │   ├── DoctorUpdateDTO.cs
-│   │   │   │   └── DoctorWithStatusDTO.cs
+│   │   │   │   └── SpecialtyDoctorDTO.cs
 │   │   │   ├── Patient
 │   │   │   │   ├── PatientDTO.cs
 │   │   │   │   ├── PatientInsertDTO.cs
@@ -115,4 +110,4 @@
 │           └── EntityAuthorizationAttribute.cs
 └── swagger.json
 
-24 directories, 91 files
+24 directories, 86 files

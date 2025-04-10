@@ -13,6 +13,6 @@ namespace ClinAgenda.src.Application.DTOs.Specialty
             public int SpecialtyId { get; set; }
             public string SpecialtyName { get; set; } = string.Empty;
             public int ScheduleDuration { get; set; }
-            public bool IsActive { get; set; } = true;
+            public bool lActive { get; set; } = true;
         }
 }
