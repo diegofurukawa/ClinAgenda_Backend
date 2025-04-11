@@ -16,10 +16,10 @@ namespace ClinAgenda.src.Application.DTOs.Appointment
         public required string SpecialtyName { get; set; }
         public int StatusId { get; set; }
         public required string StatusName { get; set; }
-        public DateTime DAppointmentDate { get; set; }  
+        public DateTime dAppointmentDate { get; set; }  
         public string Observation { get; set; } = "";
-        public DateTime DCreated { get; set; }
-        public DateTime? DLastUpdated { get; set; }
-        public bool LActive { get; set; }
+        public DateTime dCreated { get; set; }
+        public DateTime? dLastUpdated { get; set; }
+        public bool lActive { get; set; }
     }
 }

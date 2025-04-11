@@ -126,7 +126,7 @@ namespace ClinAgenda.src.Application.StatusUseCase
                 StatusName = statusName,
                 StatusType = "default",
                 DCreated = DateTime.Now,
-                LActive = true
+                lActive = true
             };
         }
 

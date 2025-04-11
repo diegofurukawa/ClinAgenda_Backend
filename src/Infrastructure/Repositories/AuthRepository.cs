@@ -44,7 +44,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 Token = token,
                 DExpires = expires,
                 DCreated = DateTime.Now,
-                LActive = true
+                lActive = true
             };
         }
 

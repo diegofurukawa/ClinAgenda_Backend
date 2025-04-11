@@ -28,7 +28,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 StatusType,
                 DCreated,
                 DLastUpdated,
-                LActive
+                lActive
             FROM status
             WHERE StatusId = @StatusId";
 
@@ -106,8 +106,8 @@ namespace ClinAgenda.src.Infrastructure.Repositories
 
             if (lActive.HasValue)
             {
-                queryBase.Append(" AND S.LActive = @LActive");
-                parameters.Add("LActive", lActive.Value);
+                queryBase.Append(" AND S.lActive = @lActive");
+                parameters.Add("lActive", lActive.Value);
             }
 
             var countQuery = $"SELECT COUNT(DISTINCT S.StatusId) {queryBase}";
@@ -120,7 +120,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 S.StatusType,
                 S.DCreated,
                 S.DLastUpdated,
-                S.LActive
+                S.lActive
             {queryBase}
             ORDER BY S.StatusId
             LIMIT @Limit OFFSET @Offset";
@@ -141,7 +141,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 StatusName = @StatusName, 
                 StatusType = @StatusType, 
                 dlastupdated = NOW(), 
-                LActive = @LActive
+                lActive = @lActive
             WHERE StatusId = @StatusId";
 
             var parameters = new DynamicParameters(statusInsertDTO);
@@ -156,7 +156,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             string query = @"
             UPDATE status 
             SET 
-                LActive = @Active,
+                lActive = @Active,
                 dlastupdated = NOW()
             WHERE StatusId = @StatusId";
 

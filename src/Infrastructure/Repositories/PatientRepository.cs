@@ -22,17 +22,19 @@ namespace ClinAgenda.src.Infrastructure.Repositories
         {
             string query = @"
                 SELECT 
-                    p.PatientId,
-                    p.PatientName,
-                    p.PhoneNumber,
-                    p.DocumentNumber,
-                    p.dBirthdate,
-                    p.StatusId,
-                    p.dCreated,
-                    p.dlastUpdated,
-                    p.lActive
-                FROM patient p
-                WHERE p.PatientId = @PatientId";
+                    P.PatientId, 
+                    P.PatientName,
+                    P.PhoneNumber,
+                    P.DocumentNumber,
+                    DATE_FORMAT(P.dBirthdate, '%d/%m/%Y %H:%i:%s') as dBirthdate,
+                    P.StatusId, 
+                    S.StatusName,
+                    P.dCreated,
+                    P.dlastupdated,
+                    P.lActive
+                FROM patient P
+                INNER JOIN status S ON S.statusid = P.statusid
+                WHERE P.PatientId = @PatientId";
 
             var parameters = new { PatientId = patientId };
             
@@ -76,8 +78,8 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             
             if (lActive.HasValue)
             {
-                queryBase.Append(" AND P.lActive = @LActive");
-                parameters.Add("LActive", lActive.Value);
+                queryBase.Append(" AND P.lActive = @lActive");
+                parameters.Add("lActive", lActive.Value);
             }
 
             var countQuery = $"SELECT COUNT(DISTINCT P.PatientId) {queryBase}";
@@ -89,12 +91,12 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                         P.PatientName,
                         P.PhoneNumber,
                         P.DocumentNumber,
-                        P.dBirthdate,
+                        DATE_FORMAT(P.dBirthdate, '%d/%m/%Y %H:%i:%s') as dBirthdate,
                         P.StatusId, 
                         S.StatusName,
-                        P.DCreated AS DCreated,
-                        P.dlastupdated AS DLastUpdated,
-                        P.lActive AS LActive
+                        P.dCreated,
+                        P.dlastupdated,
+                        P.lActive
                     {queryBase}
                     ORDER BY P.PatientId
                     LIMIT @Limit OFFSET @Offset";
@@ -126,7 +128,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                     patientInsertDTO.DocumentNumber,
                     DBirthDate = normalizedDate,
                     patientInsertDTO.StatusId,
-                    patientInsertDTO.LActive
+                    patientInsertDTO.lActive
                 };
                 
                 string query = @"
@@ -146,7 +148,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                         @DBirthDate, 
                         @StatusId, 
                         NOW(), 
-                        @LActive
+                        @lActive
                     );
                     SELECT LAST_INSERT_ID();";
                     
@@ -183,7 +185,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                         dBirthdate = @DBirthDate, 
                         statusid = @StatusId,
                         dlastupdated = NOW(),
-                        lActive = @LActive
+                        lActive = @lActive
                     WHERE PatientId = @PatientId";
 
                 var parameters = new
@@ -194,7 +196,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                     patientInsertDTO.DocumentNumber,
                     dBirthdate = normalizedDate,
                     patientInsertDTO.StatusId,
-                    patientInsertDTO.LActive
+                    patientInsertDTO.lActive
                 };
                 
                 return await _connection.ExecuteAsync(query, parameters);

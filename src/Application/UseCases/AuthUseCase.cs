@@ -32,7 +32,7 @@ namespace ClinAgenda.src.Application.AuthUseCase
         {
             // Buscar usuário pelo nome de usuário
             var user = await _userRepository.GetUserByUsernameAsync(login.Username);
-            if (user == null || !user.LActive)
+            if (user == null || !user.lActive)
                 return null;
 
             // Verificar senha
@@ -93,7 +93,7 @@ namespace ClinAgenda.src.Application.AuthUseCase
                 Username = registration.Username,
                 Email = registration.Email,
                 PasswordHash = passwordHash,
-                LActive = true
+                lActive = true
             };
 
             // Salvar usuário
@@ -109,7 +109,7 @@ namespace ClinAgenda.src.Application.AuthUseCase
                 {
                     RoleName = "User",
                     Description = "Regular application user",
-                    LActive = true
+                    lActive = true
                 };
                 
                 int roleId = await _roleRepository.CreateRoleAsync(newRole);
@@ -118,7 +118,7 @@ namespace ClinAgenda.src.Application.AuthUseCase
                     RoleId = roleId, 
                     RoleName = "User", 
                     Description = "Regular application user",
-                    LActive = true
+                    lActive = true
                 };
             }
 
@@ -159,7 +159,7 @@ namespace ClinAgenda.src.Application.AuthUseCase
         {
             var storedToken = await _authRepository.GetValidTokenAsync(token);
             
-            if (storedToken == null || !storedToken.LActive || storedToken.DExpires < DateTime.Now)
+            if (storedToken == null || !storedToken.lActive || storedToken.DExpires < DateTime.Now)
                 return false;
 
             return _jwtService.ValidateToken(token, out _);

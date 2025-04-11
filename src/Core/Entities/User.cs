@@ -15,6 +15,6 @@ namespace ClinAgenda.src.Core.Entities
         public int NFailedLoginAttempts { get; set; } = 0;
         public DateTime DCreated { get; set; }
         public DateTime? DLastUpdated { get; set; }
-        public bool LActive { get; set; } = true;
+        public bool lActive { get; set; } = true;
     }
 }

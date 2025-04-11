@@ -15,6 +15,6 @@ namespace ClinAgenda.src.Application.DTOs.Patient
         public required DateTime DBirthDate { get; set; }
         public DateTime DCreated { get; set; }
         public DateTime? DLastUpdated { get; set; }
-        public bool LActive { get; set; }
+        public bool lActive { get; set; }
     }
 }

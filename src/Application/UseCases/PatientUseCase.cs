@@ -57,7 +57,7 @@ namespace ClinAgenda.src.Application.PatientUseCase
                     PatientName = p.PatientName,
                     PhoneNumber = p.PhoneNumber,
                     DocumentNumber = p.DocumentNumber,
-                    DBirthDate = p.DBirthDate,
+                    dBirthDate = p.dBirthDate,
                     Status = statusList.ContainsKey(p.StatusId) 
                         ? statusList[p.StatusId]
                         : new StatusDTO
@@ -67,11 +67,11 @@ namespace ClinAgenda.src.Application.PatientUseCase
                             StatusType = "patient",
                             DCreated = p.DCreated,
                             DLastUpdated = p.DLastUpdated,
-                            LActive = p.LActive
+                            lActive = p.lActive
                         },
                     DCreated = p.DCreated,
                     DLastUpdated = p.DLastUpdated,
-                    LActive = p.LActive
+                    lActive = p.lActive
                 })
                 .ToList();
 

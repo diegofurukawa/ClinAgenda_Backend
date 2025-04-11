@@ -26,6 +26,6 @@ namespace ClinAgenda.src.Application.DTOs.Appointment
         [Required(ErrorMessage = "A observação é obrigatória", AllowEmptyStrings = true)]
         public required string Observation { get; set; } = "";
         
-        public bool LActive { get; set; } = true;
+        public bool lActive { get; set; } = true;
     }
 }

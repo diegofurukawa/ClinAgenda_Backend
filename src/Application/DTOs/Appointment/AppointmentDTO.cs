@@ -16,6 +16,6 @@ namespace ClinAgenda.src.Application.DTOs.Appointment
         public required string Observation { get; set; }
         public DateTime DCreated { get; set; }
         public DateTime? DLastUpdated { get; set; }
-        public bool LActive { get; set; }
+        public bool lActive { get; set; }
     }
 }

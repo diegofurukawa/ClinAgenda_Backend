@@ -87,7 +87,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                     @Email, 
                     @PasswordHash, 
                     NOW(), 
-                    @LActive
+                    @lActive
                 );
                 SELECT LAST_INSERT_ID();";
 
@@ -104,7 +104,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                     dLastLogin = @DLastLogin, 
                     nFailedLoginAttempts = @NFailedLoginAttempts, 
                     dLastUpdated = NOW(), 
-                    lActive = @LActive
+                    lActive = @lActive
                 WHERE userId = @UserId";
 
             var rowsAffected = await _connection.ExecuteAsync(query, user);

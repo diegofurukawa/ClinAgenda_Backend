@@ -58,8 +58,8 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             
             if (lActive.HasValue)
             {
-                queryBase.Append(" AND D.lActive = @LActive");
-                parameters.Add("LActive", lActive.Value);
+                queryBase.Append(" AND D.lActive = @lActive");
+                parameters.Add("lActive", lActive.Value);
             }
 
             var countQuery = $"SELECT COUNT(DISTINCT D.doctorId) {queryBase}";
@@ -147,7 +147,8 @@ namespace ClinAgenda.src.Infrastructure.Repositories
             UPDATE doctor SET 
                 doctorName = @DoctorName,
                 statusId = @StatusId,
-                dLastUpdated = NOW()
+                dLastUpdated = NOW(),
+                lActive = @lActive
             WHERE doctorId = @DoctorId";
             
             int rowsAffected = await _connection.ExecuteAsync(query, doctor);

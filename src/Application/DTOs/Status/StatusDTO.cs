@@ -13,6 +13,6 @@ namespace ClinAgenda.src.Application.DTOs.Status
         public string StatusType { get; set; }
         public DateTime DCreated { get; set; }
         public DateTime? DLastUpdated { get; set; }
-        public bool LActive { get; set; }
+        public bool lActive { get; set; }
     }   
 }

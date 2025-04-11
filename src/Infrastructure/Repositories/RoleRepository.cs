@@ -77,7 +77,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                     @RoleName, 
                     @Description, 
                     NOW(), 
-                    @LActive
+                    @lActive
                 );
                 SELECT LAST_INSERT_ID();";
 
@@ -91,7 +91,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                     roleName = @RoleName, 
                     description = @Description, 
                     dLastUpdated = NOW(), 
-                    lActive = @LActive
+                    lActive = @lActive
                 WHERE roleId = @RoleId";
 
             var rowsAffected = await _connection.ExecuteAsync(query, role);

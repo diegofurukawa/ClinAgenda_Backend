@@ -12,6 +12,6 @@ namespace ClinAgenda.src.Core.Entities
         public string? Description { get; set; }
         public DateTime DCreated { get; set; }
         public DateTime? DLastUpdated { get; set; }
-        public bool LActive { get; set; } = true;
+        public bool lActive { get; set; } = true;
     }
 }

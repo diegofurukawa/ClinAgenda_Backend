@@ -58,8 +58,8 @@ namespace ClinAgenda.src.Infrastructure.Repositories
 
             if (lActive.HasValue)
             {
-                queryBase.Append(" AND S.LActive = @LActive");
-                parameters.Add("LActive", lActive.Value);
+                queryBase.Append(" AND S.lActive = @lActive");
+                parameters.Add("lActive", lActive.Value);
             }
 
             var countQuery = $"SELECT COUNT(DISTINCT S.SpecialtyId) {queryBase}";
@@ -98,7 +98,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 @SpecialtyName, 
                 @nScheduleDuration,
                 NOW(),
-                @LActive
+                @lActive
             );
             SELECT LAST_INSERT_ID();";
 
@@ -113,7 +113,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 SpecialtyName = @SpecialtyName, 
                 nScheduleDuration = @nScheduleDuration, 
                 dLastUpdated = NOW(), 
-                LActive = @LActive
+                lActive = @lActive
             WHERE SpecialtyId = @SpecialtyId";
 
             var parameters = new DynamicParameters(specialtyInsertDTO);

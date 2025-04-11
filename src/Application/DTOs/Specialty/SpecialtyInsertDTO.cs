@@ -16,6 +16,6 @@ namespace ClinAgenda.src.Application.DTOs.Specialty
         [Range(15, 60, ErrorMessage = "A duração deve estar entre 1 e 480 minutos")]
         public required int NScheduleDuration { get; set; }
         
-        public bool LActive { get; set; } = true;
+        public bool lActive { get; set; } = true;
     }
 }

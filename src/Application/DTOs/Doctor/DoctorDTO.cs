@@ -10,5 +10,6 @@ namespace ClinAgenda.src.Application.DTOs.Doctor
         public int DoctorId { get; set; }
         public required string DoctorName { get; set; }
         public int StatusId { get; set; }
+        public bool lActive { get; set; }
     }
 }

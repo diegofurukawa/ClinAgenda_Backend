@@ -55,7 +55,10 @@ namespace ClinAgenda.src.Application.DoctorUseCase
                         SpecialtyName = s.SpecialtyName,
                         nScheduleDuration = s.nScheduleDuration
                     }
-                    ).ToList()
+                    ).ToList(),
+                
+                // Adicionando esta linha para transferir o valor do lActive
+                lActive = d.lActive  
             });
 
             return new DoctorResponseDTO

@@ -13,7 +13,7 @@ namespace ClinAgenda.src.Core.Entities
         public required DateTime DExpires { get; set; }
         public DateTime DCreated { get; set; }
         public DateTime? DLastUpdated { get; set; }
-        public bool LActive { get; set; } = true;
+        public bool lActive { get; set; } = true;
         
         // Navegação
         public virtual User User { get; set; }

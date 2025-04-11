@@ -112,7 +112,7 @@ namespace ClinAgenda.src.Application.AppointmentUseCase
                     observation = appointment.Observation,
                     created = appointment.DCreated,
                     lastUpdated = appointment.DLastUpdated,
-                    active = appointment.LActive
+                    active = appointment.lActive
                 }
             };
         }
@@ -329,9 +329,9 @@ namespace ClinAgenda.src.Application.AppointmentUseCase
                         DocumentNumber = patient?.DocumentNumber ?? "",
                         StatusId = patient?.StatusId ?? 0,
                         DBirthDate = patient?.DBirthDate ?? DateTime.MinValue,
-                        DCreated = patient?.DCreated ?? appointment.DCreated,
+                        DCreated = patient?.DCreated ?? appointment.dCreated,
                         DLastUpdated = patient?.DLastUpdated,
-                        LActive = patient?.LActive ?? true
+                        lActive = patient?.lActive ?? true
                     },
                     Doctor = new DoctorDTO
                     {
@@ -347,24 +347,24 @@ namespace ClinAgenda.src.Application.AppointmentUseCase
                         SpecialtyId = appointment.SpecialtyId,
                         SpecialtyName = appointment.SpecialtyName,
                         nScheduleDuration = 30, // Valor padrão
-                        DCreated = appointment.DCreated,
-                        DLastUpdated = appointment.DLastUpdated,
-                        LActive = true
+                        DCreated = appointment.dCreated,
+                        DLastUpdated = appointment.dLastUpdated,
+                        lActive = true
                     },
                     Status = status ?? new StatusDTO
                     {
                         StatusId = appointment.StatusId,
                         StatusName = appointment.StatusName,
                         StatusType = "appointment",
-                        DCreated = appointment.DCreated,
-                        DLastUpdated = appointment.DLastUpdated,
-                        LActive = true
+                        DCreated = appointment.dCreated,
+                        DLastUpdated = appointment.dLastUpdated,
+                        lActive = true
                     },
-                    DAppointmentDate = appointment.DAppointmentDate,
+                    DAppointmentDate = appointment.dAppointmentDate,
                     Observation = appointment.Observation,
-                    DCreated = appointment.DCreated,
-                    DLastUpdated = appointment.DLastUpdated,
-                    LActive = appointment.LActive
+                    DCreated = appointment.dCreated,
+                    DLastUpdated = appointment.dLastUpdated,
+                    lActive = appointment.lActive
                 });
             }
             

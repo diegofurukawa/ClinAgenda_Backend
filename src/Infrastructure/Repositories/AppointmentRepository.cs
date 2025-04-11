@@ -27,11 +27,11 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                     doctorId AS DoctorId,
                     specialtyId AS SpecialtyId,
                     statusId AS StatusId,
-                    dAppointmentDate AS DAppointmentDate,
+                    DATE_FORMAT(dAppointmentDate, '%d/%m/%Y %H:%i') as dAppointmentDate,
                     observation AS Observation,
                     dCreated AS DCreated,
                     dLastUpdated AS DLastUpdated,
-                    lActive AS LActive
+                    lActive
                 FROM appointment
                 WHERE appointmentId = @AppointmentId";
 
@@ -87,23 +87,23 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                 queryBase.Append(" AND A.statusId = @StatusId");
                 parameters.Add("StatusId", statusId.Value);
             }
-            
+            //DATE_FORMAT(A.dAppointmentDate, '%d/%m/%Y %H:%i')
             if (startDate.HasValue)
             {
-                queryBase.Append(" AND A.dAppointmentDate >= @StartDate");
+                queryBase.Append(" AND (DATE_FORMAT(A.dAppointmentDate, '%d/%m/%Y %H:%i')) >= @StartDate");
                 parameters.Add("StartDate", startDate.Value);
             }
             
             if (endDate.HasValue)
             {
-                queryBase.Append(" AND A.dAppointmentDate <= @EndDate");
+                queryBase.Append(" AND (DATE_FORMAT(A.dAppointmentDate, '%d/%m/%Y %H:%i')) >= @EndDate");
                 parameters.Add("EndDate", endDate.Value);
             }
             
             if (lActive.HasValue)
             {
-                queryBase.Append(" AND A.lActive = @LActive");
-                parameters.Add("LActive", lActive.Value);
+                queryBase.Append(" AND A.lActive = @lActive");
+                parameters.Add("lActive", lActive.Value);
             }
 
             var countQuery = $"SELECT COUNT(DISTINCT A.appointmentId) {queryBase}";
@@ -120,11 +120,11 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                         SP.specialtyName,
                         S.statusId,
                         S.statusName,
-                        A.dAppointmentDate,
-                        A.observation AS Observation,
-                        A.dCreated AS DCreated,
-                        A.dLastUpdated AS DLastUpdated,
-                        A.lActive AS LActive
+                        DATE_FORMAT(A.dAppointmentDate, '%d/%m/%Y %H:%i') as dAppointmentDate,
+                        A.observation,
+                        A.dCreated,
+                        A.dLastUpdated,
+                        A.lActive
                     {queryBase}
                     ORDER BY A.dAppointmentDate
                     LIMIT @Limit OFFSET @Offset";
@@ -158,7 +158,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                     @DAppointmentDate, 
                     @Observation,
                     NOW(),
-                    @LActive
+                    @lActive
                 );
                 SELECT LAST_INSERT_ID();";
                 
@@ -177,7 +177,7 @@ namespace ClinAgenda.src.Infrastructure.Repositories
                     dAppointmentDate = @DAppointmentDate, 
                     observation = @Observation,
                     dLastUpdated = NOW(),
-                    lActive = @LActive
+                    lActive = @lActive
                 WHERE appointmentId = @AppointmentId";
 
             var parameters = new DynamicParameters(appointmentInsertDTO);

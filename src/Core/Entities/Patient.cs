@@ -15,6 +15,6 @@ namespace ClinAgenda
         public required DateTime DBirthDate { get; set; }
         public DateTime DCreated { get; set; }
         public DateTime? DLastUpdated { get; set; }
-        public bool LActive { get; set; } = true;
+        public bool lActive { get; set; } = true;
     }
 }
