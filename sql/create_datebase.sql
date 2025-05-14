@@ -186,3 +186,141 @@ CREATE TABLE IF NOT EXISTS `user_entity` (
   UNIQUE KEY `entity_unique` (`entityType`,`entityId`),
   CONSTRAINT `fk_userentity_user` FOREIGN KEY (`userId`) REFERENCES `user` (`userId`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Tabela de operações (list, insert, update, delete, etc.)
+CREATE TABLE IF NOT EXISTS `operation` (
+  `operationId` int NOT NULL AUTO_INCREMENT,
+  `operationName` varchar(100) NOT NULL,
+  `operationKey` varchar(100) NOT NULL,
+  `module` varchar(50) NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `dCreated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `dLastUpdated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `lActive` tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`operationId`),
+  UNIQUE KEY `operationKey_module` (`operationKey`, `module`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Tabela de relação direta entre usuários e operações permitidas
+CREATE TABLE IF NOT EXISTS `user_operation` (
+  `userId` int NOT NULL,
+  `operationId` int NOT NULL,
+  `dCreated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `dLastUpdated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `lActive` tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`userId`, `operationId`),
+  KEY `fk_useroperation_operation` (`operationId`),
+  CONSTRAINT `fk_useroperation_user` FOREIGN KEY (`userId`) REFERENCES `user` (`userId`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_useroperation_operation` FOREIGN KEY (`operationId`) REFERENCES `operation` (`operationId`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Tabela para controle de senhas de atendimento
+CREATE TABLE IF NOT EXISTS `queue_ticket` (
+  `ticketId` int NOT NULL AUTO_INCREMENT,
+  `ticketNumber` varchar(20) NOT NULL,
+  `ticketType` enum('NORMAL','PRIORITY','SCHEDULED') NOT NULL,
+  `patientId` int DEFAULT NULL,
+  `appointmentId` int DEFAULT NULL,
+  `createdBy` int NOT NULL,
+  `calledBy` int DEFAULT NULL,
+  `statusId` int NOT NULL,
+  `dCreated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `dCalled` datetime DEFAULT NULL,
+  `dFinished` datetime DEFAULT NULL,
+  `dLastUpdated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `lActive` tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`ticketId`),
+  UNIQUE KEY `ticketNumber_dCreated` (`ticketNumber`, `dCreated`),
+  KEY `fk_ticket_patient` (`patientId`),
+  KEY `fk_ticket_appointment` (`appointmentId`),
+  KEY `fk_ticket_createdBy` (`createdBy`),
+  KEY `fk_ticket_calledBy` (`calledBy`),
+  KEY `fk_ticket_status` (`statusId`),
+  CONSTRAINT `fk_ticket_patient` FOREIGN KEY (`patientId`) REFERENCES `patient` (`patientId`),
+  CONSTRAINT `fk_ticket_appointment` FOREIGN KEY (`appointmentId`) REFERENCES `appointment` (`appointmentId`),
+  CONSTRAINT `fk_ticket_createdBy` FOREIGN KEY (`createdBy`) REFERENCES `user` (`userId`),
+  CONSTRAINT `fk_ticket_calledBy` FOREIGN KEY (`calledBy`) REFERENCES `user` (`userId`),
+  CONSTRAINT `fk_ticket_status` FOREIGN KEY (`statusId`) REFERENCES `status` (`statusId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Tabela para configuração de sequências de senhas
+CREATE TABLE IF NOT EXISTS `queue_counter` (
+  `counterId` int NOT NULL AUTO_INCREMENT,
+  `counterType` enum('NORMAL','PRIORITY','SCHEDULED') NOT NULL,
+  `prefix` varchar(5) NOT NULL,
+  `currentNumber` int NOT NULL DEFAULT 1,
+  `resetDaily` tinyint(1) NOT NULL DEFAULT 1,
+  `lastResetDate` date DEFAULT NULL,
+  `dCreated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `dLastUpdated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `lActive` tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`counterId`),
+  UNIQUE KEY `counterType` (`counterType`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Tabela para registrar histórico de chamadas
+CREATE TABLE IF NOT EXISTS `queue_call_history` (
+  `callId` int NOT NULL AUTO_INCREMENT,
+  `ticketId` int NOT NULL,
+  `calledBy` int NOT NULL,
+  `displayId` int DEFAULT NULL,
+  `dCalled` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `callCount` int NOT NULL DEFAULT 1,
+  PRIMARY KEY (`callId`),
+  KEY `fk_callhistory_ticket` (`ticketId`),
+  KEY `fk_callhistory_calledBy` (`calledBy`),
+  CONSTRAINT `fk_callhistory_ticket` FOREIGN KEY (`ticketId`) REFERENCES `queue_ticket` (`ticketId`),
+  CONSTRAINT `fk_callhistory_calledBy` FOREIGN KEY (`calledBy`) REFERENCES `user` (`userId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Tabela opcional para configurar displays/painéis
+CREATE TABLE IF NOT EXISTS `queue_display` (
+  `displayId` int NOT NULL AUTO_INCREMENT,
+  `displayName` varchar(100) NOT NULL,
+  `location` varchar(100) DEFAULT NULL,
+  `dCreated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `dLastUpdated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `lActive` tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`displayId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- Inserindo contadores iniciais para as senhas
+INSERT INTO `queue_counter` (`counterType`, `prefix`, `currentNumber`, `resetDaily`) VALUES
+('NORMAL', 'N', 1, 1),
+('PRIORITY', 'P', 1, 1),
+('SCHEDULED', 'S', 1, 1);
+
+-- Inserindo status relacionados a senhas (se ainda não existirem)
+INSERT INTO `status` (`statusName`, `statusType`) VALUES
+('Aguardando', 'queue'),
+('Chamado', 'queue'),
+('Em Atendimento', 'queue'),
+('Finalizado', 'queue'),
+('Ausente', 'queue');
+
+-- Inserindo operações para cada módulo (exemplo)
+INSERT INTO `operation` (`operationName`, `operationKey`, `module`, `description`) VALUES
+-- Módulo Paciente
+('Listar Pacientes', 'PAGELIST', 'PATIENT', 'Ver lista de pacientes'),
+('Inserir Paciente', 'FORM.INSERT', 'PATIENT', 'Inserir novo paciente'),
+('Atualizar Paciente', 'FORM.UPDATE', 'PATIENT', 'Atualizar dados de paciente'),
+('Excluir Paciente', 'FORM.DELETE', 'PATIENT', 'Excluir paciente'),
+
+-- Módulo Médico
+('Listar Médicos', 'PAGELIST', 'DOCTOR', 'Ver lista de médicos'),
+('Inserir Médico', 'FORM.INSERT', 'DOCTOR', 'Inserir novo médico'),
+('Atualizar Médico', 'FORM.UPDATE', 'DOCTOR', 'Atualizar dados de médico'),
+('Excluir Médico', 'FORM.DELETE', 'DOCTOR', 'Excluir médico'),
+
+-- Módulo Especialidade
+('Listar Especialidades', 'PAGELIST', 'SPECIALTY', 'Ver lista de especialidades'),
+('Inserir Especialidade', 'FORM.INSERT', 'SPECIALTY', 'Inserir nova especialidade'),
+('Atualizar Especialidade', 'FORM.UPDATE', 'SPECIALTY', 'Atualizar especialidade'),
+('Excluir Especialidade', 'FORM.DELETE', 'SPECIALTY', 'Excluir especialidade'),
+
+-- Módulo Agendamento
+('Listar Agendamentos', 'PAGELIST', 'APPOINTMENT', 'Ver lista de agendamentos'),
+('Inserir Agendamento', 'FORM.INSERT', 'APPOINTMENT', 'Inserir novo agendamento'),
+('Atualizar Agendamento', 'FORM.UPDATE', 'APPOINTMENT', 'Atualizar agendamento'),
+('Excluir Agendamento', 'FORM.DELETE', 'APPOINTMENT', 'Excluir agendamento');
